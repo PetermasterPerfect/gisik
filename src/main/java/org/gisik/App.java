@@ -76,46 +76,71 @@ public class App  extends JFrame {
         JMenu menu;
         JMenuItem addVectorItem = new JMenuItem(new AbstractAction("Add Vector") {
             public void actionPerformed(ActionEvent e) {
-                try {
-                    File file = JFileDataStoreChooser.showOpenFile("shp", null);
-                    if (file == null) {
-                        return;
-                    }
-                    FileDataStore store = FileDataStoreFinder.getDataStore(file);
-                    System.out.println(file.getName());
-                    SimpleFeatureSource featureSource = store.getFeatureSource();
-                    Style style = SLD.createSimpleStyle(featureSource.getSchema());
-                    Layer layer = new FeatureLayer(featureSource, style);
-                    mapContent.addLayer(layer);
-                    SimpleFeatureType schema = featureSource.getSchema();
-
-                    GeometryDescriptor geomDesc = schema.getGeometryDescriptor();
-                    Class<?> geomBinding = geomDesc.getType().getBinding();
-
-                    String geomType = geomBinding.getSimpleName();
-                    if (geomType.contains("Point")) {
-                        layersPanel.add(schema.getName().toString(), new PointIcon(Color.RED), true);
-                    } else if (geomType.contains("Line")) {
-                        layersPanel.add(schema.getName().toString(), new LineIcon(Color.RED), true);
-                    } else if (geomType.contains("Polygon")) {
-                        layersPanel.add(schema.getName().toString(), new SquareIcon(Color.RED), true);
-                    } else {
-                        System.out.println("Unknown geom type: " + geomType);
-                    }
-                    layersPanel.revalidate();
-                    layersPanel.repaint();
-                    store.dispose();
-                }
-                catch (IOException ex) {
-                    System.err.println(ex);
-                }
+                openShape();
             }
         });
-        JMenuItem addCsvItem = new JMenuItem("Add csv");
+        JMenuItem addCsvItem = new JMenuItem(new AbstractAction("Add csv") {
+            public void actionPerformed(ActionEvent e) {
+                openCsv();
+            }
+        });
         menu = new JMenu("Layer");
         menu.add(addVectorItem);
         menu.add(addCsvItem);
         return menu;
+    }
+
+    private void openShape() {
+        try {
+            File file = JFileDataStoreChooser.showOpenFile("shp", null);
+            if (file == null) {
+                return;
+            }
+            FileDataStore store = FileDataStoreFinder.getDataStore(file);
+            System.out.println(file.getName());
+            SimpleFeatureSource featureSource = store.getFeatureSource();
+            Style style = SLD.createSimpleStyle(featureSource.getSchema());
+            Layer layer = new FeatureLayer(featureSource, style);
+            mapContent.addLayer(layer);
+            SimpleFeatureType schema = featureSource.getSchema();
+
+            GeometryDescriptor geomDesc = schema.getGeometryDescriptor();
+            Class<?> geomBinding = geomDesc.getType().getBinding();
+
+            String geomType = geomBinding.getSimpleName();
+            if (geomType.contains("Point")) {
+                layersPanel.add(schema.getName().toString(), new PointIcon(Color.RED), true);
+            } else if (geomType.contains("Line")) {
+                layersPanel.add(schema.getName().toString(), new LineIcon(Color.RED), true);
+            } else if (geomType.contains("Polygon")) {
+                layersPanel.add(schema.getName().toString(), new SquareIcon(Color.RED), true);
+            } else {
+                System.out.println("Unknown geom type: " + geomType);
+            }
+            layersPanel.revalidate();
+            layersPanel.repaint();
+            store.dispose();
+        }
+        catch (IOException ex) {
+            System.err.println(ex);
+        }
+    }
+
+    private void openCsv() {
+        File file = JFileDataStoreChooser.showOpenFile("csv", null);
+        if (file == null) {
+            return;
+        }
+        if(!file.canRead()){
+            JOptionPane.showMessageDialog(null, "Given file path has no read persmission", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        try {
+            CsvLoaderDialog csvLoader = new CsvLoaderDialog(file, mapContent, layersPanel, this);
+            csvLoader.setVisible(true);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Cannot read a file", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void createMenu() {
