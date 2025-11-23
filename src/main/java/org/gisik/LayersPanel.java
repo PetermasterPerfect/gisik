@@ -31,7 +31,7 @@ class LayersPanel extends JPanel {
     }
 
     public void add(final String text,
-            final boolean checked)
+                    final boolean checked)
     {
         LayerNodeData data = new LayerNodeData(text, checked);
         DefaultMutableTreeNode node = new DefaultMutableTreeNode(data);
@@ -40,11 +40,19 @@ class LayersPanel extends JPanel {
     }
 
     public void add(final String text, Icon icon,
-            final boolean checked)
+                    final boolean checked)
     {
         final LayerNodeData data = new LayerNodeData(text, icon, checked);
         final DefaultMutableTreeNode node = new DefaultMutableTreeNode(data);
         DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
         model.insertNodeInto(node, root, root.getChildCount());
+    }
+
+    public void remove(int index){
+        DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+        if (index >= 0 && index < root.getChildCount()) {
+            DefaultMutableTreeNode child = (DefaultMutableTreeNode) root.getChildAt(index);
+            model.removeNodeFromParent(child);
+        }
     }
 }

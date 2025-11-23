@@ -23,6 +23,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 
 public class App  extends JFrame {
@@ -49,7 +50,13 @@ public class App  extends JFrame {
     private JMenu createEditMenu() {
         JMenu menu;
         menu = new JMenu("Edit");
+        JMenuItem deleteLayers = new JMenuItem(new AbstractAction("Delete Layers") {
+            public void actionPerformed(ActionEvent e) {
+                openLayerDeletion();
+            }
+        });
 
+        menu.add(deleteLayers);
         return menu;
     }
 
@@ -177,6 +184,51 @@ public class App  extends JFrame {
             divLoc = splitPane.getDividerLocation();
             splitPane.setDividerSize(0);
             splitPane.setDividerLocation(0.0);
+        }
+    }
+
+    private void openLayerDeletion() {
+        List<Layer> layers = mapContent.layers();
+
+        String[] names = new String[layers.size()];
+        for (int i = 0; i < layers.size(); i++) {
+            Layer layer = layers.get(i);
+            String title = layer.getTitle();
+            names[i] = title;
+        }
+
+        JList<String> list = new JList<>(names);
+        list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+
+        JScrollPane scrollPane = new JScrollPane(list);
+        scrollPane.setPreferredSize(new Dimension(250, 150));
+
+        int result = JOptionPane.showConfirmDialog(
+                null,
+                scrollPane,
+                "Select Layers to Delete",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            int[] selected = list.getSelectedIndices();
+            if (selected.length == 0) {
+                return;
+            }
+
+            deleteSelectedLayers(selected);
+        }
+    }
+
+    private void deleteSelectedLayers(int[] indices) {
+        for(int i=indices.length-1; i>=0; i--) {
+            int index = indices[i];
+            Layer layer = mapContent.layers().get(index);
+            mapContent.layers().remove(layer);
+
+            layersPanel.remove(index);
+            layersPanel.revalidate();
+            layersPanel.repaint();
         }
     }
 
