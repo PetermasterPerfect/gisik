@@ -6,63 +6,16 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
 import java.awt.*;
 
-public class LayerNodeRenderer implements TreeCellRenderer {
+public class LayerNodeRenderer extends JLabel implements ListCellRenderer<Object> {
     private final LayerNodePanel panel = new LayerNodePanel();
-    private final DefaultTreeCellRenderer defaultRenderer =
-            new DefaultTreeCellRenderer();
-
-    private final Color selectionForeground, selectionBackground;
-    private final Color textForeground, textBackground;
-
-    protected LayerNodePanel getPanel() {
-        return panel;
-    }
-
-    public LayerNodeRenderer() {
-        final Font fontValue = UIManager.getFont("Tree.font");
-        if (fontValue != null) panel.label.setFont(fontValue);
-
-        selectionForeground = UIManager.getColor("Tree.selectionForeground");
-        selectionBackground = UIManager.getColor("Tree.selectionBackground");
-        textForeground = UIManager.getColor("Tree.textForeground");
-        textBackground = UIManager.getColor("Tree.textBackground");
-    }
-
-    @Override
-    public Component getTreeCellRendererComponent(JTree tree, Object value,
-                                           boolean selected, boolean expanded,
-                                           boolean leaf, int row, boolean hasFocus)
+    public Component getListCellRendererComponent(
+            JList<?> list,           // the list
+            Object value,            // value to display
+            int index,               // cell index
+            boolean isSelected,      // is the cell selected
+            boolean cellHasFocus)
     {
-        LayerNodeData nodeData = null;
-        if(value instanceof DefaultMutableTreeNode node) {
-            Object obj = node.getUserObject();
-            if(obj instanceof LayerNodeData) {
-                nodeData = (LayerNodeData) obj;
-            }
-        }
-
-        String stringValue =
-                tree.convertValueToText(value, selected, expanded, leaf, row, false);
-        panel.label.setText(stringValue);
-        panel.checkBox.setSelected(false);
-
-        if(selected) {
-            panel.setForeground(selectionForeground);
-            panel.setBackground(selectionBackground);
-            panel.label.setForeground(selectionForeground);
-            panel.label.setBackground(selectionBackground);
-        }
-        else {
-            panel.setForeground(textForeground);
-            panel.setBackground(textBackground);
-            panel.label.setForeground(textForeground);
-            panel.label.setBackground(textBackground);
-        }
-
-        if (nodeData == null) {
-            return defaultRenderer.getTreeCellRendererComponent(tree, value,
-                    selected, expanded, leaf, row, hasFocus);
-        }
+        LayerNodeData nodeData = (LayerNodeData) value;
 
         panel.label.setText(nodeData.getLabel());
         panel.label.setIcon(nodeData.getIcon());

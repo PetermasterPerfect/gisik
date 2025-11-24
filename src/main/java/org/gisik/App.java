@@ -13,6 +13,7 @@ import org.geotools.styling.SLD;
 import org.geotools.swing.JMapPane;
 import org.geotools.swing.control.JMapStatusBar;
 import org.geotools.swing.data.JFileDataStoreChooser;
+import org.geotools.swing.styling.JSimpleStyleDialog;
 import org.geotools.swing.tool.*;
 import org.gisik.layerstree.LineIcon;
 import org.gisik.layerstree.PointIcon;
@@ -97,9 +98,11 @@ public class App  extends JFrame {
                 return;
             }
             FileDataStore store = FileDataStoreFinder.getDataStore(file);
+            if(store == null)
+                throw new IOException("Invalid vector file.");
             System.out.println(file.getName());
             SimpleFeatureSource featureSource = store.getFeatureSource();
-            Style style = SLD.createSimpleStyle(featureSource.getSchema());
+            Style style = JSimpleStyleDialog.showDialog(null, featureSource.getSchema());//SLD.createSimpleStyle(featureSource.getSchema());
             Layer layer = new FeatureLayer(featureSource, style);
             mapContent.addLayer(layer);
             SimpleFeatureType schema = featureSource.getSchema();
@@ -122,11 +125,13 @@ public class App  extends JFrame {
             store.dispose();
         }
         catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, "Invalid vector file.", "Error", JOptionPane.ERROR_MESSAGE);
             System.err.println(ex);
         }
     }
 
     private void openCsv() {
+
         File file = JFileDataStoreChooser.showOpenFile("csv", null);
         if (file == null) {
             return;

@@ -12,6 +12,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.MapContent;
 import org.geotools.styling.SLD;
+import org.geotools.swing.styling.JSimpleStyleDialog;
 import org.gisik.layerstree.PointIcon;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -137,8 +138,9 @@ public class CsvLoaderDialog extends JDialog {
                         features.add(feature);
                 }
 
+                //JSimpleStyleDialog.showDialog(null, featureType);
                 SimpleFeatureCollection collection = new ListFeatureCollection(featureType, features);
-                Style style = SLD.createSimpleStyle(featureType, Color.RED);
+                Style style = JSimpleStyleDialog.showDialog(null, featureType);//SLD.createSimpleStyle(featureType, Color.RED);
                 FeatureLayer layer = new  FeatureLayer(collection, style);
                 layersPanel.add(name, new PointIcon(Color.RED), true);
                 mapContent.addLayer(layer);
