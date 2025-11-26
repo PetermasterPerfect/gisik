@@ -24,6 +24,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class App  extends JFrame {
@@ -50,7 +53,13 @@ public class App  extends JFrame {
     private JMenu createEditMenu() {
         JMenu menu;
         menu = new JMenu("Edit");
+        JMenuItem deleteLayers = new JMenuItem(new AbstractAction("Delete Layers") {
+            public void actionPerformed(ActionEvent e) {
+                openLayerDeletion();
+            }
+        });
 
+        menu.add(deleteLayers);
         return menu;
     }
 
@@ -104,8 +113,9 @@ public class App  extends JFrame {
             SimpleFeatureSource featureSource = store.getFeatureSource();
             Style style = JSimpleStyleDialog.showDialog(null, featureSource.getSchema());//SLD.createSimpleStyle(featureSource.getSchema());
             Layer layer = new FeatureLayer(featureSource, style);
-            mapContent.addLayer(layer);
             SimpleFeatureType schema = featureSource.getSchema();
+            layer.setTitle(schema.getName().toString());
+            mapContent.addLayer(layer);
 
             GeometryDescriptor geomDesc = schema.getGeometryDescriptor();
             Class<?> geomBinding = geomDesc.getType().getBinding();
@@ -183,6 +193,65 @@ public class App  extends JFrame {
             splitPane.setDividerSize(0);
             splitPane.setDividerLocation(0.0);
         }
+    }
+
+    private void openLayerDeletion() {
+
+        List<Layer> mapLayers = mapContent.layers();
+        List<Layer> displayLayers = new ArrayList<>();
+        String[] names = new String[mapLayers.size()];
+
+        for (int i = mapLayers.size() - 1; i >= 0; i--) {
+            Layer layer = mapLayers.get(i);
+            displayLayers.add(layer);
+            String title = layer.getTitle();
+
+            //names have to be in reversed order compared to displayLayers
+            //this is caused by mapContent and LayerPanel having item added in different order
+            names[mapLayers.size() - 1 - i] = title != null ? title : "(unnamed layer)";
+        }
+
+        JList<String> list = new JList<>(names);
+        list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        JScrollPane scrollPane = new JScrollPane(list);
+        scrollPane.setPreferredSize(new Dimension(300, 200));
+
+        int result = JOptionPane.showConfirmDialog(
+                null,
+                scrollPane,
+                "Select Layers to Delete",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            int[] selected = list.getSelectedIndices();
+            if (selected.length == 0) return;
+
+            deleteSelectedLayers(selected, displayLayers);
+        }
+    }
+
+    private void deleteSelectedLayers(int[] selectedIndices, List<Layer> displayLayers) {
+        Arrays.sort(selectedIndices);
+
+        List<Layer> toRemove = new ArrayList<>();
+        for (int idx : selectedIndices) {
+            if (idx >= 0 && idx < displayLayers.size()) {
+                toRemove.add(displayLayers.get(idx));
+            }
+        }
+
+        for (Layer layer : toRemove) {
+            mapContent.removeLayer(layer);
+        }
+
+        for (int i = selectedIndices.length - 1; i >= 0; i--) {
+            int uiIndex = selectedIndices[i];
+            layersPanel.remove(uiIndex);
+        }
+
+        layersPanel.revalidate();
+        layersPanel.repaint();
     }
 
     public App() {

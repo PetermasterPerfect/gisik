@@ -135,13 +135,14 @@ public class CsvLoaderDialog extends JDialog {
                     Point point = geometryFactory.createPoint(new Coordinate(longs.get(i), lats.get(i)));
                     featureBuilder.add(point);
                     SimpleFeature feature = featureBuilder.buildFeature(null);
-                        features.add(feature);
+                    features.add(feature);
                 }
 
                 //JSimpleStyleDialog.showDialog(null, featureType);
                 SimpleFeatureCollection collection = new ListFeatureCollection(featureType, features);
                 Style style = JSimpleStyleDialog.showDialog(null, featureType);//SLD.createSimpleStyle(featureType, Color.RED);
                 FeatureLayer layer = new  FeatureLayer(collection, style);
+                layer.setTitle(name);
                 layersPanel.add(name, new PointIcon(Color.RED), true);
                 mapContent.addLayer(layer);
                 dispose();

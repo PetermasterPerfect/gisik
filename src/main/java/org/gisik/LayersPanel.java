@@ -31,4 +31,10 @@ class LayersPanel extends JPanel {
         final LayerNodeData data = new LayerNodeData(text, icon, checked);
         model.add(0, data);
     }
+
+    public void remove(int index){
+        if(index >= 0 && index < model.size()){
+            model.remove(index);
+        }
+    }
 }
