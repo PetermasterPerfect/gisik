@@ -5,6 +5,8 @@ import org.gisik.layerstree.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 class LayersPanel extends JPanel {
 
@@ -30,6 +32,17 @@ class LayersPanel extends JPanel {
                 }
             }
         };
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int col = table.columnAtPoint(e.getPoint());
+                if(col == 0) {
+                    int row = table.rowAtPoint(e.getPoint());
+                    Boolean checkBox = (Boolean)model.getValueAt(row, 0);
+                    mapContent.layers().get(row).setVisible(checkBox);
+                }
+            }
+        });
         table.setTableHeader(null);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getColumnModel().getColumn(0).setMaxWidth(50);
@@ -100,16 +113,20 @@ class LayersPanel extends JPanel {
     private void editLayer() {
     }
 
-    public void add(final String text,
-            final boolean checked) {
-        final LayerNodeData data = new LayerNodeData(text, checked);
-        model.insertRow(0, new Object[]{checked, data});
-    }
-
     public void add(final String text, Icon icon,
             final boolean checked) {
         final LayerNodeData data = new LayerNodeData(text, icon, checked);
         model.insertRow(0, new Object[]{checked, data});
+        Object checkBox = (Object)model.getValueAt(0, 0);
+        /*if(checkBox != null) {
+            checkBox.addActionListener(e -> {
+                for(int i = 0; i < table.getRowCount(); i++) {
+                    if(checkBox == (JCheckBox)model.getValueAt(i, 0)) {
+                        mapContent.layers().get(i).setVisible(checkBox.isSelected());
+                    }
+                }
+            });
+        }*/
     }
 
     public void remove(int index){
