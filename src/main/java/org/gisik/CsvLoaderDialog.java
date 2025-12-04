@@ -11,7 +11,6 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.MapContent;
-import org.geotools.styling.SLD;
 import org.geotools.swing.styling.JSimpleStyleDialog;
 import org.gisik.layerstree.PointIcon;
 import org.locationtech.jts.geom.Coordinate;

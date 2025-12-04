@@ -9,7 +9,6 @@ import org.geotools.map.FeatureLayer;
 import org.geotools.map.Layer;
 import org.geotools.map.MapContent;
 import org.geotools.map.MapViewport;
-import org.geotools.styling.SLD;
 import org.geotools.swing.JMapPane;
 import org.geotools.swing.control.JMapStatusBar;
 import org.geotools.swing.data.JFileDataStoreChooser;
@@ -116,7 +115,6 @@ public class App  extends JFrame {
             SimpleFeatureType schema = featureSource.getSchema();
             layer.setTitle(schema.getName().toString());
             mapContent.addLayer(layer);
-
             GeometryDescriptor geomDesc = schema.getGeometryDescriptor();
             Class<?> geomBinding = geomDesc.getType().getBinding();
 
@@ -272,7 +270,7 @@ public class App  extends JFrame {
         panel.add(JMapStatusBar.createDefaultStatusBar(mapPane), "grow");
         this.getContentPane().add(panel, BorderLayout.SOUTH);
 
-        layersPanel = new LayersPanel();
+        layersPanel = new LayersPanel(mapContent);
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(layersPanel), mapPane);
         splitPane.setOneTouchExpandable(true);
         this.add(splitPane, BorderLayout.CENTER);

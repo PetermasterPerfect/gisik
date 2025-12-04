@@ -6,11 +6,14 @@ import java.awt.BorderLayout;
 
 public class LayerNodePanel extends JPanel {
     public JLabel label = new JLabel();
-    public JCheckBox checkBox = new JCheckBox();
+
+    @Override
+    public String toString() {
+        return label.getText();
+    }
+
     public LayerNodePanel() {
-        checkBox.setMargin(new Insets(0, 0, 0, 0));
         setLayout(new BorderLayout());
-        add(checkBox, BorderLayout.WEST);
         add(label, BorderLayout.CENTER);
     }
 }
