@@ -87,7 +87,6 @@ class LayersPanel extends JPanel {
             model.removeRow(idx);
             mapContent.removeLayer(mapContent.layers().get(idx));
         }
-
     }
 
     private void moveupLayer() {
@@ -116,7 +115,7 @@ class LayersPanel extends JPanel {
     public void add(final String text, Icon icon,
             final boolean checked) {
         final LayerNodeData data = new LayerNodeData(text, icon, checked);
-        model.insertRow(0, new Object[]{checked, data});
+        model.insertRow(model.getRowCount(), new Object[]{checked, data});
         Object checkBox = (Object)model.getValueAt(0, 0);
         /*if(checkBox != null) {
             checkBox.addActionListener(e -> {

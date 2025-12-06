@@ -194,20 +194,8 @@ public class App  extends JFrame {
     }
 
     private void openLayerDeletion() {
-
         List<Layer> mapLayers = mapContent.layers();
-        List<Layer> displayLayers = new ArrayList<>();
-        String[] names = new String[mapLayers.size()];
-
-        for (int i = mapLayers.size() - 1; i >= 0; i--) {
-            Layer layer = mapLayers.get(i);
-            displayLayers.add(layer);
-            String title = layer.getTitle();
-
-            //names have to be in reversed order compared to displayLayers
-            //this is caused by mapContent and LayerPanel having item added in different order
-            names[mapLayers.size() - 1 - i] = title != null ? title : "(unnamed layer)";
-        }
+        String[] names = mapLayers.stream().map(Layer::getTitle).toArray(String[]::new);
 
         JList<String> list = new JList<>(names);
         list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -225,17 +213,17 @@ public class App  extends JFrame {
             int[] selected = list.getSelectedIndices();
             if (selected.length == 0) return;
 
-            deleteSelectedLayers(selected, displayLayers);
+            deleteSelectedLayers(selected, mapLayers);
         }
     }
 
-    private void deleteSelectedLayers(int[] selectedIndices, List<Layer> displayLayers) {
+    private void deleteSelectedLayers(int[] selectedIndices, List<Layer> allLayers) {
         Arrays.sort(selectedIndices);
 
         List<Layer> toRemove = new ArrayList<>();
         for (int idx : selectedIndices) {
-            if (idx >= 0 && idx < displayLayers.size()) {
-                toRemove.add(displayLayers.get(idx));
+            if (idx >= 0 && idx < allLayers.size()) {
+                toRemove.add(allLayers.get(idx));
             }
         }
 
