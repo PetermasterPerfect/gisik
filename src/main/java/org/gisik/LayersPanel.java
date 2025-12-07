@@ -17,6 +17,7 @@ class LayersPanel extends JPanel {
     private final JTable table;
     private final DefaultTableModel model = new DefaultTableModel();
     private final MapContent mapContent;
+    private boolean osmCBLocked = false;
     public LayersPanel(MapContent mapContent) {
         this.mapContent = mapContent;
         model.addColumn("");
@@ -30,6 +31,17 @@ class LayersPanel extends JPanel {
                     default:
                         return LayerNodePanel.class;
                 }
+            }
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                if (column != 0) return false;
+                if (osmCBLocked) {
+                    Object val = model.getValueAt(row, 1);
+                    if (val instanceof LayerNodeData data) {
+                        return !"OSM Map".equals(data.getLabel());
+                    }
+                }
+                return true;
             }
         };
         table.addMouseListener(new MouseAdapter() {
@@ -133,4 +145,17 @@ class LayersPanel extends JPanel {
             model.removeRow(index);
         }
     }
+
+    public void setOSMCBLocked(boolean locked) {
+        this.osmCBLocked = locked;
+    }
+
+    public DefaultTableModel getModel(){
+        return model;
+    }
+
+    public JTable getTable(){
+        return table;
+    }
+
 }
