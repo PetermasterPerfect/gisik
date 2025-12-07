@@ -116,16 +116,6 @@ class LayersPanel extends JPanel {
             final boolean checked) {
         final LayerNodeData data = new LayerNodeData(text, icon, checked);
         model.insertRow(model.getRowCount(), new Object[]{checked, data});
-        Object checkBox = (Object)model.getValueAt(0, 0);
-        /*if(checkBox != null) {
-            checkBox.addActionListener(e -> {
-                for(int i = 0; i < table.getRowCount(); i++) {
-                    if(checkBox == (JCheckBox)model.getValueAt(i, 0)) {
-                        mapContent.layers().get(i).setVisible(checkBox.isSelected());
-                    }
-                }
-            });
-        }*/
     }
 
     public void remove(int index){

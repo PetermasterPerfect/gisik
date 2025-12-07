@@ -114,6 +114,7 @@ public class CsvLoaderDialog extends JDialog {
                 if(crs == null) {
                     JOptionPane.showMessageDialog(null, "Error when reading crs", "Error", JOptionPane.ERROR_MESSAGE);
                     dispose();
+                    return;
                 }
                 SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
                 builder.setName(name);
