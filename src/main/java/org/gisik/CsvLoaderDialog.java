@@ -26,16 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class CsvLoaderDialog extends JDialog {
-
-    static class WidgetAndPanel<T> {
-        public T widget;
-        public JPanel panel;
-        WidgetAndPanel(T widget, JPanel panel) {
-            this.widget = widget;
-            this.panel  = panel;
-        }
-    }
+public class CsvLoaderDialog extends DialogBase {
 
     private final String name;
     private final CsvParser parser;
@@ -50,7 +41,7 @@ public class CsvLoaderDialog extends JDialog {
     LayersPanel layersPanel;
 
     CsvLoaderDialog(File csvFile, MapContent mapContent, LayersPanel layersPanel, JFrame parent) throws IOException {
-        super(parent, "Load csv file", true);
+        super(parent, "Load csv file");
         setSize(600, 400);
         setLocationRelativeTo(null);
         this.mapContent = mapContent;
@@ -159,24 +150,5 @@ public class CsvLoaderDialog extends JDialog {
             return ' ';
         }
         return txt.charAt(0);
-    }
-
-    private WidgetAndPanel<JCheckBox> createCheckBox(String labelText) {
-        JPanel checkboxPanel = new JPanel(new BorderLayout());
-        JLabel label = new JLabel(labelText);
-        JCheckBox checkBox = new JCheckBox();
-        checkBox.setSelected(false);
-        checkboxPanel.add(label, BorderLayout.WEST);
-        checkboxPanel.add(checkBox, BorderLayout.CENTER);
-        return new WidgetAndPanel<>(checkBox, checkboxPanel);
-    }
-
-    private WidgetAndPanel<JComboBox<String>> createLabelCombo(String labelText, String[] comboList) {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel label = new JLabel(labelText);
-        JComboBox<String> combo = new JComboBox<>(comboList);
-        panel.add(label, BorderLayout.WEST);
-        panel.add(combo, BorderLayout.CENTER);
-        return new WidgetAndPanel<>(combo, panel);
     }
 }
