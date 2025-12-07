@@ -30,6 +30,7 @@ import java.util.List;
 
 public class App  extends JFrame {
 
+    private final MapViewport viewport;
     private final MapContent mapContent;
     private LayersPanel layersPanel = null;
     private JCheckBoxMenuItem showLayersPanelItem;
@@ -72,11 +73,20 @@ public class App  extends JFrame {
         });
         JMenuItem test = new JMenuItem(new AbstractAction("test") {
             public void actionPerformed(ActionEvent e) {
+                viewport.setCoordinateReferenceSystem(CrsLookup.find("EPSG2178"));
                 System.out.println("test");
             }
         });
+
+        JMenuItem setCrsItem = new JMenuItem(new AbstractAction("Set CRS") {
+           public void actionPerformed(ActionEvent e) {
+               openCrsDialog();
+           }
+        });
+
         showLayersPanelItem.setSelected(true);
         menu.add(showLayersPanelItem);
+        menu.add(setCrsItem);
         menu.add(test);
         return menu;
     }
@@ -90,6 +100,7 @@ public class App  extends JFrame {
         });
         JMenuItem addCsvItem = new JMenuItem(new AbstractAction("Add csv") {
             public void actionPerformed(ActionEvent e) {
+
                 openCsv();
             }
         });
@@ -156,6 +167,11 @@ public class App  extends JFrame {
         }
     }
 
+    private void openCrsDialog() {
+        CrsDialog crsDialog = new CrsDialog( viewport, this);
+        crsDialog.setVisible(true);
+    }
+
     private void createMenu() {
         JMenuBar menuBar;
 
@@ -191,6 +207,10 @@ public class App  extends JFrame {
             splitPane.setDividerSize(0);
             splitPane.setDividerLocation(0.0);
         }
+    }
+
+    private void setCrsPanel() {
+
     }
 
     private void openLayerDeletion() {
@@ -247,7 +267,7 @@ public class App  extends JFrame {
         setSize(800, 600);
         setLocationRelativeTo(null);
         mapContent = new MapContent();
-        MapViewport viewport = new MapViewport();
+        viewport = new MapViewport();
         viewport.setFixedBoundsOnResize(true);
         mapContent.setViewport(viewport);
         JMapPane mapPane = new JMapPane();
