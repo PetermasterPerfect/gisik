@@ -4,16 +4,21 @@ import org.geotools.api.data.FileDataStoreFinder;
 import org.geotools.api.data.SimpleFeatureSource;
 import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.api.feature.type.GeometryDescriptor;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.api.style.Style;
-import org.geotools.map.FeatureLayer;
-import org.geotools.map.Layer;
-import org.geotools.map.MapContent;
-import org.geotools.map.MapViewport;
+import org.geotools.map.*;
+import org.geotools.referencing.CRS;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.swing.JMapPane;
 import org.geotools.swing.control.JMapStatusBar;
 import org.geotools.swing.data.JFileDataStoreChooser;
 import org.geotools.swing.styling.JSimpleStyleDialog;
 import org.geotools.swing.tool.*;
+import org.geotools.tile.TileService;
+import org.geotools.tile.impl.osm.OSMService;
+import org.geotools.tile.util.AsyncTileLayer;
+import org.geotools.tile.util.TileLayer;
+import org.gisik.layerstree.LayerNodeData;
 import org.gisik.layerstree.LineIcon;
 import org.gisik.layerstree.PointIcon;
 import org.gisik.layerstree.SquareIcon;
@@ -110,6 +115,40 @@ public class App  extends JFrame {
         return menu;
     }
 
+    private JMenu createBaseMapMenu() {
+        JMenu menu;
+        JMenuItem addOSMMap = new JMenuItem(new AbstractAction("Add OSM Map") {
+            public void actionPerformed(ActionEvent e) {
+                addOSM();
+            }
+        });
+
+        menu = new JMenu("Base Maps");
+        menu.add(addOSMMap);
+        return menu;
+    }
+
+    private void addOSM(){
+        List<String> createdLayers =  mapContent.layers().stream().map(Layer::getTitle).toList() ;
+
+        if(!createdLayers.contains("OSM Map") &&
+                (CRS.isEquivalent(DefaultGeographicCRS.WGS84, mapContent.getCoordinateReferenceSystem()) ||
+                        mapContent.getCoordinateReferenceSystem() == null
+                )){
+
+            String baseURL = "https://tile.openstreetmap.org/";
+            TileService service = new OSMService("OSM", baseURL);
+            TileLayer tileLayer = new AsyncTileLayer(service);
+            tileLayer.setTitle("OSM Map");
+
+            mapContent.addLayer(tileLayer);
+            layersPanel.add("OSM Map", null, true);
+            layersPanel.revalidate();
+            layersPanel.repaint();
+        }
+    }
+
+
     private void openShape() {
         try {
             File file = JFileDataStoreChooser.showOpenFile("shp", null);
@@ -181,6 +220,7 @@ public class App  extends JFrame {
         menuBar.add(createEditMenu());
         menuBar.add(createViewMenu());
         menuBar.add(createLayerMenu());
+        menuBar.add(createBaseMapMenu());
 
         this.setJMenuBar(menuBar);
     }
@@ -270,8 +310,36 @@ public class App  extends JFrame {
         viewport = new MapViewport();
         viewport.setFixedBoundsOnResize(true);
         mapContent.setViewport(viewport);
-        JMapPane mapPane = new JMapPane();
 
+        mapContent.getViewport().addMapBoundsListener(event -> {
+            if ((event.getType() & MapBoundsEvent.COORDINATE_SYSTEM_MASK) != 0) {
+
+                CoordinateReferenceSystem newCrs = mapContent.getCoordinateReferenceSystem();
+                boolean isWgs84 = CRS.isEquivalent(newCrs, DefaultGeographicCRS.WGS84);
+                layersPanel.setOSMCBLocked(!isWgs84);
+
+                for (int i = 0; i < layersPanel.getModel().getRowCount(); i++) {
+                    Object value = layersPanel.getModel().getValueAt(i, 1);
+                    String label = null;
+
+                    if (value instanceof LayerNodeData data) {
+                        label = data.getLabel();
+                    }
+
+                    if ("OSM Map".equals(label)) {
+                        mapContent.layers().get(i).setVisible(isWgs84);
+                        layersPanel.getModel().setValueAt(isWgs84, i, 0);
+
+                        if (layersPanel.getTable().isEditing()) {
+                            layersPanel.getTable().getCellEditor().stopCellEditing();
+                        }
+                        layersPanel.getModel().fireTableRowsUpdated(i, i);
+                    }
+                }
+            }
+        });
+
+        JMapPane mapPane = new JMapPane();
         setupPanAndZoom(mapPane);
         mapPane.setMapContent(mapContent);
         JPanel panel = new JPanel();
