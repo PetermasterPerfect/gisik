@@ -131,10 +131,11 @@ public class CsvLoaderDialog extends DialogBase {
 
                 //JSimpleStyleDialog.showDialog(null, featureType);
                 SimpleFeatureCollection collection = new ListFeatureCollection(featureType, features);
-                Style style = JSimpleStyleDialog.showDialog(null, featureType);//SLD.createSimpleStyle(featureType, Color.RED);
+                Color color = ColorStyle.randomColor();
+                Style style = ColorStyle.createStyle2(featureType, color);
                 FeatureLayer layer = new  FeatureLayer(collection, style);
                 layer.setTitle(name);
-                layersPanel.add(name, new PointIcon(Color.RED), true);
+                layersPanel.add(name, new PointIcon(color), true);
                 mapContent.addLayer(layer);
                 dispose();
             }

@@ -1,18 +1,18 @@
 package org.gisik;
+
 import org.geotools.api.data.FileDataStore;
 import org.geotools.api.data.FileDataStoreFinder;
 import org.geotools.api.data.SimpleFeatureSource;
 import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.api.feature.type.GeometryDescriptor;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
-import org.geotools.api.style.Style;
+import org.geotools.api.style.*;
 import org.geotools.map.*;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.swing.JMapPane;
 import org.geotools.swing.control.JMapStatusBar;
 import org.geotools.swing.data.JFileDataStoreChooser;
-import org.geotools.swing.styling.JSimpleStyleDialog;
 import org.geotools.swing.tool.*;
 import org.geotools.tile.TileService;
 import org.geotools.tile.impl.osm.OSMService;
@@ -22,7 +22,6 @@ import org.gisik.layerstree.LayerNodeData;
 import org.gisik.layerstree.LineIcon;
 import org.gisik.layerstree.PointIcon;
 import org.gisik.layerstree.SquareIcon;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -40,6 +39,8 @@ public class App  extends JFrame {
     private LayersPanel layersPanel = null;
     private JCheckBoxMenuItem showLayersPanelItem;
     final private JSplitPane splitPane;
+
+
 
     private int divSize = 0;
     private int divLoc = 0;
@@ -160,7 +161,8 @@ public class App  extends JFrame {
                 throw new IOException("Invalid vector file.");
             System.out.println(file.getName());
             SimpleFeatureSource featureSource = store.getFeatureSource();
-            Style style = JSimpleStyleDialog.showDialog(null, featureSource.getSchema());//SLD.createSimpleStyle(featureSource.getSchema());
+            Color color = ColorStyle.randomColor();
+            Style style = ColorStyle.createStyle2(featureSource.getSchema(), color);
             Layer layer = new FeatureLayer(featureSource, style);
             SimpleFeatureType schema = featureSource.getSchema();
             layer.setTitle(schema.getName().toString());
@@ -170,11 +172,11 @@ public class App  extends JFrame {
 
             String geomType = geomBinding.getSimpleName();
             if (geomType.contains("Point")) {
-                layersPanel.add(schema.getName().toString(), new PointIcon(Color.RED), true);
+                layersPanel.add(schema.getName().toString(), new PointIcon(color), true);
             } else if (geomType.contains("Line")) {
-                layersPanel.add(schema.getName().toString(), new LineIcon(Color.RED), true);
+                layersPanel.add(schema.getName().toString(), new LineIcon(color), true);
             } else if (geomType.contains("Polygon")) {
-                layersPanel.add(schema.getName().toString(), new SquareIcon(Color.RED), true);
+                layersPanel.add(schema.getName().toString(), new SquareIcon(color), true);
             } else {
                 System.out.println("Unknown geom type: " + geomType);
             }
@@ -299,6 +301,8 @@ public class App  extends JFrame {
         layersPanel.revalidate();
         layersPanel.repaint();
     }
+
+
 
     public App() {
         createMenu();
