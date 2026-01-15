@@ -1,7 +1,9 @@
-package org.gisik;
+package org.gisik.crs;
 
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.map.MapViewport;
+import org.gisik.DialogBase;
+import org.gisik.WidgetAndPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,7 +12,7 @@ public class CrsDialog extends DialogBase {
     private final JButton buttonSet;
     private final JComboBox<String> comboCrs;
     private final MapViewport mapViewport;
-    CrsDialog(MapViewport mapViewport, JFrame parent) {
+    public CrsDialog(MapViewport mapViewport, JFrame parent) {
         super(parent, "Set CRS");
         setSize(200, 200);
         setLocationRelativeTo(null);

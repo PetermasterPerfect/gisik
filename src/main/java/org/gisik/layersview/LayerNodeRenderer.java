@@ -1,11 +1,7 @@
-package org.gisik.layerstree;
+package org.gisik.layersview;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreeCellRenderer;
 import java.awt.*;
 
 public class LayerNodeRenderer extends LayerNodePanel implements TableCellRenderer {

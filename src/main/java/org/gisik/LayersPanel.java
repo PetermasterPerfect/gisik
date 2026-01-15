@@ -1,6 +1,6 @@
 package org.gisik;
 import org.geotools.map.MapContent;
-import org.gisik.layerstree.*;
+import org.gisik.layersview.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -8,7 +8,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-class LayersPanel extends JPanel {
+public class LayersPanel extends JPanel {
 
     private final JButton deleteBtn = new JButton();
     private final JButton moveupBtn = new JButton();
@@ -128,6 +128,7 @@ class LayersPanel extends JPanel {
             final boolean checked) {
         final LayerNodeData data = new LayerNodeData(text, icon, checked);
         model.insertRow(model.getRowCount(), new Object[]{checked, data});
+
     }
 
     public void remove(int index){

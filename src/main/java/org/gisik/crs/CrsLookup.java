@@ -1,4 +1,4 @@
-package org.gisik;
+package org.gisik.crs;
 
 import org.geotools.api.referencing.FactoryException;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
@@ -10,11 +10,12 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 public class CrsLookup {
-    static public String[] crs = {"WGS84", "EPSG2178", "EPSG2180"};
+    static public String[] crs = {"WGS84(DD)", "EPSG2178", "EPSG2180"};
     static public CoordinateReferenceSystem find(String crsName) {
-        if(crsName == "WGS84") {
+        if(Objects.equals(crsName, "WGS84(DD)")) {
             return DefaultGeographicCRS.WGS84;
         } else {
             return nameToCrs(crsName);
@@ -23,9 +24,12 @@ public class CrsLookup {
 
     static private CoordinateReferenceSystem nameToCrs(String crsName) {
         try {
-
-            String wkt = new String(Files.readAllBytes(Paths.get(CrsLookup.class.getResource(crsName).toURI())), StandardCharsets.UTF_8);
-            return CRS.parseWKT(wkt);
+            if(crsName != null) {
+                String wkt = new String(Files.readAllBytes(Paths.get(CrsLookup.class.getResource(crsName).toURI())), StandardCharsets.UTF_8);
+                return CRS.parseWKT(wkt);
+            } else {
+                throw new IllegalArgumentException("Bad paramater for an CSV entry");
+            }
         }catch(IOException e) {
             System.err.println("Cannot read wtk file");
             return null;

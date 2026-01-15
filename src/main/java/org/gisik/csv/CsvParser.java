@@ -1,10 +1,13 @@
-package org.gisik;
+package org.gisik.csv;
+
+import org.gisik.EmptyFileException;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class CsvParser {
     static class NameInfo {
@@ -160,5 +163,14 @@ public class CsvParser {
             ret += line + "\n";
         }
         return ret;
+    }
+
+    static public char comboTextToChar(String txt) {
+        if (Objects.equals(txt, "TAB")) {
+            return '\t';
+        } else if (Objects.equals(txt, "SPACE")) {
+            return ' ';
+        }
+        return txt.charAt(0);
     }
 }

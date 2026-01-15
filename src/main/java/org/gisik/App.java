@@ -1,12 +1,6 @@
 package org.gisik;
 
-import org.geotools.api.data.FileDataStore;
-import org.geotools.api.data.FileDataStoreFinder;
-import org.geotools.api.data.SimpleFeatureSource;
-import org.geotools.api.feature.simple.SimpleFeatureType;
-import org.geotools.api.feature.type.GeometryDescriptor;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
-import org.geotools.api.style.*;
 import org.geotools.map.*;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
@@ -14,14 +8,11 @@ import org.geotools.swing.JMapPane;
 import org.geotools.swing.control.JMapStatusBar;
 import org.geotools.swing.data.JFileDataStoreChooser;
 import org.geotools.swing.tool.*;
-import org.geotools.tile.TileService;
-import org.geotools.tile.impl.osm.OSMService;
-import org.geotools.tile.util.AsyncTileLayer;
-import org.geotools.tile.util.TileLayer;
-import org.gisik.layerstree.LayerNodeData;
-import org.gisik.layerstree.LineIcon;
-import org.gisik.layerstree.PointIcon;
-import org.gisik.layerstree.SquareIcon;
+import org.gisik.crs.CrsDialog;
+import org.gisik.crs.CrsLookup;
+import org.gisik.csv.CsvLoaderDialog;
+import org.gisik.layersview.LayerNodeData;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -39,21 +30,73 @@ public class App  extends JFrame {
     private LayersPanel layersPanel = null;
     private JCheckBoxMenuItem showLayersPanelItem;
     final private JSplitPane splitPane;
-
-
+    private ProjectManager projectManager = null;
 
     private int divSize = 0;
     private int divLoc = 0;
 
     private JMenu createFileMenu() {
         JMenu menu;
-        JMenuItem openItem, saveItem;
+        JMenuItem openItem, saveItem, saveAsItem;
         menu = new JMenu("File");
-        openItem = new JMenuItem("Open");
-        saveItem = new JMenuItem("Save");
+
+        openItem = new JMenuItem(new AbstractAction("Open") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openProject();
+            }
+        });
+
+        saveItem = new JMenuItem(new AbstractAction("Save") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveProject();
+            }
+        });
+
+        saveAsItem = new JMenuItem(new AbstractAction("Save as") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveAsProject();
+            }
+        });
+
         menu.add(openItem);
         menu.add(saveItem);
+        menu.add(saveAsItem);
         return menu;
+    }
+
+    private void saveProject() {
+        if(projectManager == null) {
+            JFileChooser fileChooser = new JFileChooser();
+            int option = fileChooser.showSaveDialog(this);
+            if(option == JFileChooser.APPROVE_OPTION){
+                projectManager = new ProjectManager(mapContent, layersPanel, fileChooser.getSelectedFile().getAbsolutePath());
+            }
+        }
+        projectManager.saveProject();
+    }
+
+    private void saveAsProject() {
+        JFileChooser fileChooser = new JFileChooser();
+        int option = fileChooser.showSaveDialog(this);
+        if(option == JFileChooser.APPROVE_OPTION){
+            projectManager = new ProjectManager(mapContent, layersPanel, fileChooser.getSelectedFile().getAbsolutePath());
+        }
+        projectManager.saveProject();
+    }
+
+    private void openProject() {
+                File file = JFileDataStoreChooser.showOpenFile("", this);
+                if (file == null) {
+                    return;
+                }
+                if(!file.canRead()){
+                    JOptionPane.showMessageDialog(null, "Given file path has no read persmission", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                projectManager = new ProjectManager(mapContent, layersPanel, file.getAbsolutePath());
+            projectManager.openProject();
     }
 
     private JMenu createEditMenu() {
@@ -101,7 +144,7 @@ public class App  extends JFrame {
         JMenu menu;
         JMenuItem addVectorItem = new JMenuItem(new AbstractAction("Add Vector") {
             public void actionPerformed(ActionEvent e) {
-                openShape();
+                openShapeWithDialog();
             }
         });
         JMenuItem addCsvItem = new JMenuItem(new AbstractAction("Add csv") {
@@ -120,7 +163,7 @@ public class App  extends JFrame {
         JMenu menu;
         JMenuItem addOSMMap = new JMenuItem(new AbstractAction("Add OSM Map") {
             public void actionPerformed(ActionEvent e) {
-                addOSM();
+                LayerManager.addOSM(mapContent, layersPanel);
             }
         });
 
@@ -129,69 +172,15 @@ public class App  extends JFrame {
         return menu;
     }
 
-    private void addOSM(){
-        List<String> createdLayers =  mapContent.layers().stream().map(Layer::getTitle).toList() ;
-
-        if(!createdLayers.contains("OSM Map") &&
-                (CRS.isEquivalent(DefaultGeographicCRS.WGS84, mapContent.getCoordinateReferenceSystem()) ||
-                        mapContent.getCoordinateReferenceSystem() == null
-                )){
-
-            String baseURL = "https://tile.openstreetmap.org/";
-            TileService service = new OSMService("OSM", baseURL);
-            TileLayer tileLayer = new AsyncTileLayer(service);
-            tileLayer.setTitle("OSM Map");
-
-            mapContent.addLayer(tileLayer);
-            layersPanel.add("OSM Map", null, true);
-            layersPanel.revalidate();
-            layersPanel.repaint();
-        }
-    }
-
-
-    private void openShape() {
-        try {
+    private void openShapeWithDialog() {
             File file = JFileDataStoreChooser.showOpenFile("shp", null);
             if (file == null) {
                 return;
             }
-            FileDataStore store = FileDataStoreFinder.getDataStore(file);
-            if(store == null)
-                throw new IOException("Invalid vector file.");
-            System.out.println(file.getName());
-            SimpleFeatureSource featureSource = store.getFeatureSource();
-            Color color = ColorStyle.randomColor();
-            Style style = ColorStyle.createStyle2(featureSource.getSchema(), color);
-            Layer layer = new FeatureLayer(featureSource, style);
-            SimpleFeatureType schema = featureSource.getSchema();
-            layer.setTitle(schema.getName().toString());
-            mapContent.addLayer(layer);
-            GeometryDescriptor geomDesc = schema.getGeometryDescriptor();
-            Class<?> geomBinding = geomDesc.getType().getBinding();
-
-            String geomType = geomBinding.getSimpleName();
-            if (geomType.contains("Point")) {
-                layersPanel.add(schema.getName().toString(), new PointIcon(color), true);
-            } else if (geomType.contains("Line")) {
-                layersPanel.add(schema.getName().toString(), new LineIcon(color), true);
-            } else if (geomType.contains("Polygon")) {
-                layersPanel.add(schema.getName().toString(), new SquareIcon(color), true);
-            } else {
-                System.out.println("Unknown geom type: " + geomType);
-            }
-            layersPanel.revalidate();
-            layersPanel.repaint();
-            store.dispose();
-        }
-        catch (IOException ex) {
-            JOptionPane.showMessageDialog(null, "Invalid vector file.", "Error", JOptionPane.ERROR_MESSAGE);
-            System.err.println(ex);
-        }
+            LayerManager.addShape(file, mapContent, layersPanel);
     }
 
     private void openCsv() {
-
         File file = JFileDataStoreChooser.showOpenFile("csv", null);
         if (file == null) {
             return;
@@ -250,6 +239,10 @@ public class App  extends JFrame {
             splitPane.setDividerLocation(0.0);
         }
     }
+
+//    String getProjectEntry() {
+//        return String.format("CRS %s", viewport.getCoordinateReferenceSystem().getName().toString());
+//    }
 
     private void setCrsPanel() {
 

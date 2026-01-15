@@ -1,4 +1,4 @@
-package org.gisik.layerstree;
+package org.gisik.layersview;
 
 import javax.swing.*;
 

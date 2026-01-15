@@ -1,7 +1,6 @@
-package org.gisik.layerstree;
+package org.gisik.layersview;
 
 import javax.swing.*;
-import java.awt.Insets;
 import java.awt.BorderLayout;
 
 public class LayerNodePanel extends JPanel {

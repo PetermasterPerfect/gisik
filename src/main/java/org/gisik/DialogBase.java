@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class DialogBase extends JDialog {
-    DialogBase(Frame parent, String title) {
+    protected DialogBase(Frame parent, String title) {
         super(parent, title, true);
     }
 

@@ -1,4 +1,4 @@
-package org.gisik;
+package org.gisik.csv;
 
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
@@ -9,10 +9,11 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
-import org.geotools.map.FeatureLayer;
 import org.geotools.map.MapContent;
-import org.geotools.swing.styling.JSimpleStyleDialog;
-import org.gisik.layerstree.PointIcon;
+import org.gisik.*;
+import org.gisik.crs.CrsLookup;
+import org.gisik.layersextra.FeatureLayerFromCsv;
+import org.gisik.layersview.PointIcon;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -24,11 +25,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+
+import static org.gisik.csv.CsvParser.comboTextToChar;
 
 public class CsvLoaderDialog extends DialogBase {
 
     private final String name;
+    private final String absPath;
     private final CsvParser parser;
     JComboBox<String> comboSeparator;
     JComboBox<String> comboLongitude;
@@ -40,13 +43,14 @@ public class CsvLoaderDialog extends DialogBase {
     MapContent mapContent;
     LayersPanel layersPanel;
 
-    CsvLoaderDialog(File csvFile, MapContent mapContent, LayersPanel layersPanel, JFrame parent) throws IOException {
+    public CsvLoaderDialog(File csvFile, MapContent mapContent, LayersPanel layersPanel, JFrame parent) throws IOException {
         super(parent, "Load csv file");
         setSize(600, 400);
         setLocationRelativeTo(null);
         this.mapContent = mapContent;
         this.layersPanel = layersPanel;
         name = csvFile.getName();
+        absPath =  csvFile.getAbsolutePath();
         parser = new CsvParser(csvFile, ',');
 
         JPanel leftPanel = new JPanel();
@@ -133,7 +137,9 @@ public class CsvLoaderDialog extends DialogBase {
                 SimpleFeatureCollection collection = new ListFeatureCollection(featureType, features);
                 Color color = ColorStyle.randomColor();
                 Style style = ColorStyle.createStyle2(featureType, color);
-                FeatureLayer layer = new  FeatureLayer(collection, style);
+                FeatureLayerFromCsv layer = new  FeatureLayerFromCsv(collection, style,
+                        absPath, comboSeparator.getSelectedItem().toString(), comboCrs.getSelectedItem().toString(), comboLongitude.getSelectedItem().toString(),
+                        comboLatitude.getSelectedItem().toString(), checkBoxFirstRow.isSelected());
                 layer.setTitle(name);
                 layersPanel.add(name, new PointIcon(color), true);
                 mapContent.addLayer(layer);
@@ -142,14 +148,5 @@ public class CsvLoaderDialog extends DialogBase {
         };
         comboSeparator.addActionListener(actionListener);
         buttonAdd.addActionListener(actionListener);
-    }
-
-    private char comboTextToChar(String txt) {
-        if (Objects.equals(txt, "TAB")) {
-            return '\t';
-        } else if (Objects.equals(txt, "SPACE")) {
-            return ' ';
-        }
-        return txt.charAt(0);
     }
 }
