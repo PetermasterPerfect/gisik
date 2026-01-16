@@ -147,9 +147,8 @@ public class App  extends JFrame {
                 openShapeWithDialog();
             }
         });
-        JMenuItem addCsvItem = new JMenuItem(new AbstractAction("Add csv") {
+        JMenuItem addCsvItem = new JMenuItem(new AbstractAction("Add Csv") {
             public void actionPerformed(ActionEvent e) {
-
                 openCsv();
             }
         });

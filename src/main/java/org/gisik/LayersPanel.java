@@ -1,5 +1,13 @@
 package org.gisik;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.filter.expression.Expression;
+import org.geotools.api.style.*;
+import org.geotools.api.style.Stroke;
+import org.geotools.map.Layer;
 import org.geotools.map.MapContent;
+import org.geotools.map.StyleLayer;
+import org.geotools.styling.LineSymbolizerImpl;
+import org.geotools.swing.styling.JSimpleStyleDialog;
 import org.gisik.layersview.*;
 
 import javax.swing.*;
@@ -122,6 +130,14 @@ public class LayersPanel extends JPanel {
     }
 
     private void editLayer() {
+        if(!table.isEditing()) {
+            int idx = table.getSelectedRows()[0];
+                if(mapContent.layers().get(idx) instanceof StyleLayer layer) {
+                    Style style = JSimpleStyleDialog.showDialog(null, (SimpleFeatureType)layer.getFeatureSource().getSchema());
+                    changeColorInPanel(layer, style, idx);
+                    layer.setStyle(style);
+                }
+        }
     }
 
     public void add(final String text, Icon icon,
@@ -131,9 +147,60 @@ public class LayersPanel extends JPanel {
 
     }
 
+    public void replace(final String text, Icon icon,
+                    final boolean checked, int index) {
+        model.removeRow(index);
+        final LayerNodeData data = new LayerNodeData(text, icon, checked);
+        model.insertRow(index, new Object[]{checked, data});
+
+    }
+
     public void remove(int index){
         if(index >= 0 && index < model.getRowCount()) {
             model.removeRow(index);
+        }
+    }
+
+    private void changeColorInPanel(Layer layer, Style style, int idx) {
+        for (FeatureTypeStyle fts : style.featureTypeStyles()) {
+            for (Rule rule : fts.rules()) {
+                for (Symbolizer sym : rule.symbolizers()) {
+                    if (sym instanceof PointSymbolizer ps) {
+                        Graphic g = ps.getGraphic();
+                        if (g != null) {
+                            for (GraphicalSymbol gs : g.graphicalSymbols()) {
+                                if (gs instanceof Mark mark) {
+                                    Fill fill = mark.getFill();
+                                    if (fill != null) {
+                                        Color color = (Color) fill.getColor().evaluate(null);
+
+                                        replace(layer.getTitle(), new PointIcon(color), layer.isVisible(), idx);
+
+                                        //System.out.println("Kolor punktu: " + color);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (sym instanceof PolygonSymbolizer ps) {
+                        Fill fill = ps.getFill();
+                        if (fill != null) {
+                            Color color = (Color) fill.getColor().evaluate(null);
+
+                            replace(layer.getTitle(), new SquareIcon(color), layer.isVisible(), idx);
+                        }
+                    }
+
+                    if (sym instanceof LineSymbolizer ls) {
+                        Stroke stroke = ls.getStroke();
+                        if (stroke != null) {
+                            Color color = (Color) stroke.getColor().evaluate(null);
+                            replace(layer.getTitle(), new LineIcon(color), layer.isVisible(), idx);
+                        }
+                    }
+                }
+            }
         }
     }
 
