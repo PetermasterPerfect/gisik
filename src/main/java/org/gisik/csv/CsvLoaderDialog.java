@@ -12,7 +12,8 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.map.MapContent;
 import org.gisik.*;
 import org.gisik.crs.CrsLookup;
-import org.gisik.layersextra.FeatureLayerFromCsv;
+import org.gisik.layersextra.FeatureLayerFromCsvProject;
+import org.gisik.layersextra.FeatureLayerProject;
 import org.gisik.layersview.PointIcon;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -42,9 +43,11 @@ public class CsvLoaderDialog extends DialogBase {
     String[] separtors = {",", ".", ";", "SPACE", "TAB"};
     MapContent mapContent;
     LayersPanel layersPanel;
+    ProjectManager projectManager;
 
-    public CsvLoaderDialog(File csvFile, MapContent mapContent, LayersPanel layersPanel, JFrame parent) throws IOException {
+    public CsvLoaderDialog(File csvFile, ProjectManager projectManager, LayersPanel layersPanel, JFrame parent) throws IOException {
         super(parent, "Load csv file");
+        this.projectManager = projectManager;
         setSize(600, 400);
         setLocationRelativeTo(null);
         this.mapContent = mapContent;
@@ -137,13 +140,35 @@ public class CsvLoaderDialog extends DialogBase {
                 SimpleFeatureCollection collection = new ListFeatureCollection(featureType, features);
                 Color color = ColorStyle.randomColor();
                 Style style = ColorStyle.createStyle2(featureType, color);
-                FeatureLayerFromCsv layer = new  FeatureLayerFromCsv(collection, style,
-                        absPath, comboSeparator.getSelectedItem().toString(), comboCrs.getSelectedItem().toString(), comboLongitude.getSelectedItem().toString(),
-                        comboLatitude.getSelectedItem().toString(), checkBoxFirstRow.isSelected());
-                layer.setTitle(name);
-                layersPanel.add(name, new PointIcon(color), true);
-                mapContent.addLayer(layer);
-                dispose();
+                try {
+                    CsvShadowLoader loader =
+                            new CsvShadowLoader(
+                                    new File(absPath),
+                                    comboSeparator.getSelectedItem().toString(),
+                                    comboCrs.getSelectedItem().toString(),
+                                    comboLongitude.getSelectedItem().toString(),
+                                    comboLatitude.getSelectedItem().toString(),
+                                    Boolean.toString(checkBoxFirstRow.isSelected())
+                            );
+
+                    FeatureLayerProject layer =
+                            loader.loadProjectLayer(
+                                    projectManager.getProjectCrs()
+                            );
+
+                    projectManager.addLayer(layer);
+                    projectManager.rebuildRenderLayers();
+                    layersPanel.add(name, new PointIcon(ColorStyle.randomColor()), true);
+                    dispose();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(
+                            null,
+                            ex.getMessage(),
+                            "CSV Load Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+
             }
         };
         comboSeparator.addActionListener(actionListener);

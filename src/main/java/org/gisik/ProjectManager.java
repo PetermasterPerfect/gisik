@@ -25,8 +25,7 @@ public class ProjectManager {
     final LayersPanel  layersPanel;
     private String filePath;
     private CoordinateReferenceSystem projectCrs;
-    private final List<FeatureLayerProject> projectLayers =
-            new ArrayList<>();
+    private final List<FeatureLayerProject> projectLayers = new ArrayList<>();
 
     private CoordinateReferenceSystem displayCrs;
 
@@ -96,15 +95,31 @@ public class ProjectManager {
                     } else {
                         throw new IllegalArgumentException("Bad paramater for an SHAPE entry");
                     }
-                } else if(Objects.equals(entry.get(0), "CSV")) {
+                } else if (Objects.equals(entry.get(0), "CSV")) {
                     if (entry.size() == 7) {
-                        CsvShadowLoader csvLoader = new CsvShadowLoader(new File(entry.get(1)), entry.get(2), entry.get(3),
-                                entry.get(4), entry.get(5), entry.get(6));
-                        csvLoader.load(layersPanel, mapContent);
+
+                        CsvShadowLoader loader =
+                                new CsvShadowLoader(
+                                        new File(entry.get(1)),
+                                        entry.get(5), // sep
+                                        entry.get(2), // crs
+                                        entry.get(3), // lon
+                                        entry.get(4), // lat
+                                        entry.get(6)  // firstRow
+                                );
+
+                        FeatureLayerProject layer =
+                                loader.loadProjectLayer(
+                                        mapViewport.getCoordinateReferenceSystem()
+                                );
+
+                        addLayer(layer);
+
                     } else {
-                        throw new IllegalArgumentException("Bad paramater for an CSV entry");
+                        throw new IllegalArgumentException("Bad parameter for a CSV entry");
                     }
                 }
+
 
             }
         } catch (IOException ex) {
@@ -162,9 +177,26 @@ public class ProjectManager {
         }
     }
 
-
     public void setDisplayCrs(CoordinateReferenceSystem crs) {
         this.displayCrs = crs;
     }
 
+    public CoordinateReferenceSystem getProjectCrs() {
+        return mapViewport.getCoordinateReferenceSystem();
+    }
+
+    public void rebuildRenderLayers() {
+        mapContent.layers().clear();
+        for (FeatureLayerProject pl : projectLayers) {
+            try {
+                mapContent.addLayer(
+                        pl.createRenderLayer(
+                                mapViewport.getCoordinateReferenceSystem()
+                        )
+                );
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
