@@ -11,12 +11,12 @@ import java.awt.*;
 public class CrsDialog extends DialogBase {
     private final JButton buttonSet;
     private final JComboBox<String> comboCrs;
-    private final MapViewport mapViewport;
-    public CrsDialog(MapViewport mapViewport, JFrame parent) {
+    private CoordinateReferenceSystem selectedCrs;
+
+    public CrsDialog(JFrame parent, CoordinateReferenceSystem currentCrs) {
         super(parent, "Set CRS");
         setSize(200, 200);
         setLocationRelativeTo(null);
-        this.mapViewport = mapViewport;
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -38,13 +38,17 @@ public class CrsDialog extends DialogBase {
 
     private void setCrsAction() {
         try {
-            CoordinateReferenceSystem crs = CrsLookup.find(comboCrs.getSelectedItem().toString());
-            mapViewport.setCoordinateReferenceSystem(crs);
-        }
-        catch (Exception e) {
-            //JOptionPane.showMessageDialog(null, "Chosen crs isnt compatible with layers crs", "Error", JOptionPane.ERROR_MESSAGE);
+            selectedCrs = CrsLookup.find(
+                    comboCrs.getSelectedItem().toString()
+            );
+        } catch (Exception e) {
             System.err.println(e.getMessage());
+            selectedCrs = null;
         }
         dispose();
+    }
+
+    public CoordinateReferenceSystem getSelectedCrs() {
+        return selectedCrs;
     }
 }

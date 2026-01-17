@@ -1,7 +1,9 @@
 package org.gisik.layersextra;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.api.style.*;
 import org.geotools.feature.FeatureCollection;
+import org.geotools.map.Layer;
 
 public class FeatureLayerFromCsv extends FeatureLayerProject {
     private final String crsName;
@@ -20,6 +22,11 @@ public class FeatureLayerFromCsv extends FeatureLayerProject {
 
     public String getProjectEntry() {
         return String.format("CSV \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"\n", pathToData, sep, crsName, lonColumn, latColumn, firstRow);
+    }
+
+    @Override
+    public Layer createRenderLayer(CoordinateReferenceSystem displayCrs) throws Exception {
+        return null;
     }
 }
 // String.format("CRS \"%s\"\n", crs);

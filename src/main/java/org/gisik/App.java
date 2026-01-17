@@ -11,6 +11,7 @@ import org.geotools.swing.tool.*;
 import org.gisik.crs.CrsDialog;
 import org.gisik.crs.CrsLookup;
 import org.gisik.csv.CsvLoaderDialog;
+import org.gisik.layersextra.FeatureLayerProject;
 import org.gisik.layersview.LayerNodeData;
 
 import javax.swing.*;
@@ -31,6 +32,8 @@ public class App  extends JFrame {
     private JCheckBoxMenuItem showLayersPanelItem;
     final private JSplitPane splitPane;
     private ProjectManager projectManager = null;
+    private CoordinateReferenceSystem displayCrs;
+    private CoordinateReferenceSystem projectCrs;
 
     private int divSize = 0;
     private int divLoc = 0;
@@ -73,6 +76,8 @@ public class App  extends JFrame {
             int option = fileChooser.showSaveDialog(this);
             if(option == JFileChooser.APPROVE_OPTION){
                 projectManager = new ProjectManager(mapContent, layersPanel, fileChooser.getSelectedFile().getAbsolutePath());
+                projectManager.setProjectCrs(projectCrs);
+                projectManager.setDisplayCrs(displayCrs);
             }
         }
         projectManager.saveProject();
@@ -83,20 +88,23 @@ public class App  extends JFrame {
         int option = fileChooser.showSaveDialog(this);
         if(option == JFileChooser.APPROVE_OPTION){
             projectManager = new ProjectManager(mapContent, layersPanel, fileChooser.getSelectedFile().getAbsolutePath());
+            projectManager.setDisplayCrs(displayCrs);
         }
         projectManager.saveProject();
     }
 
     private void openProject() {
-                File file = JFileDataStoreChooser.showOpenFile("", this);
-                if (file == null) {
-                    return;
-                }
-                if(!file.canRead()){
-                    JOptionPane.showMessageDialog(null, "Given file path has no read persmission", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-                projectManager = new ProjectManager(mapContent, layersPanel, file.getAbsolutePath());
-            projectManager.openProject();
+        File file = JFileDataStoreChooser.showOpenFile("", this);
+        if (file == null) {
+            return;
+        }
+        if(!file.canRead()){
+            JOptionPane.showMessageDialog(null, "Given file path has no read persmission", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        projectManager = new ProjectManager(mapContent, layersPanel, file.getAbsolutePath());
+        projectManager.setDisplayCrs(displayCrs);
+        projectManager.setProjectCrs(projectCrs);
+        projectManager.openProject();
     }
 
     private JMenu createEditMenu() {
@@ -176,7 +184,18 @@ public class App  extends JFrame {
             if (file == null) {
                 return;
             }
-            LayerManager.addShape(file, mapContent, layersPanel);
+        try {
+            FeatureLayerProject pl =
+                    LayerManager.loadShape(file, projectCrs);
+
+            projectManager.addLayer(pl);
+            projectManager.rebuildRenderLayers(mapContent);
+
+            layersPanel.add(pl.getTitle(), null, true);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+
     }
 
     private void openCsv() {
@@ -197,9 +216,21 @@ public class App  extends JFrame {
     }
 
     private void openCrsDialog() {
-        CrsDialog crsDialog = new CrsDialog( viewport, this);
+        CrsDialog crsDialog = new CrsDialog(this, projectCrs);
         crsDialog.setVisible(true);
+
+        CoordinateReferenceSystem selected = crsDialog.getSelectedCrs();
+        if (selected != null) {
+            projectCrs = selected;
+
+            if (projectManager != null) {
+                projectManager.setProjectCrs(projectCrs);
+            }
+
+            System.out.println("Project CRS set to: " + projectCrs.getName());
+        }
     }
+
 
     private void createMenu() {
         JMenuBar menuBar;
@@ -305,6 +336,17 @@ public class App  extends JFrame {
         mapContent = new MapContent();
         viewport = new MapViewport();
         viewport.setFixedBoundsOnResize(true);
+
+        // DISPLAY CRS IS FIXED
+        try {
+            displayCrs = CRS.decode("EPSG:3857", true);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        projectCrs = DefaultGeographicCRS.WGS84;
+
+        viewport.setCoordinateReferenceSystem(displayCrs);
         mapContent.setViewport(viewport);
 
         mapContent.getViewport().addMapBoundsListener(event -> {
