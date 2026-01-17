@@ -2,7 +2,6 @@ package org.gisik;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.MapViewport;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
 
 public class ViewportUtils {
 
@@ -12,10 +11,31 @@ public class ViewportUtils {
         ReferencedEnvelope env = viewport.getBounds();
         if (env == null) return;
 
-        double minX = Math.max(env.getMinX(), -MAX);
-        double maxX = Math.min(env.getMaxX(),  MAX);
-        double minY = Math.max(env.getMinY(), -MAX);
-        double maxY = Math.min(env.getMaxY(),  MAX);
+        double minX = env.getMinX();
+        double maxX = env.getMaxX();
+        double minY = env.getMinY();
+        double maxY = env.getMaxY();
+
+        boolean needsClamp = false;
+
+        if (minX < -MAX) {
+            minX = -MAX;
+            needsClamp = true;
+        }
+        if (maxX > MAX) {
+            maxX = MAX;
+            needsClamp = true;
+        }
+        if (minY < -MAX) {
+            minY = -MAX;
+            needsClamp = true;
+        }
+        if (maxY > MAX) {
+            maxY = MAX;
+            needsClamp = true;
+        }
+
+        if (!needsClamp) return;
 
         ReferencedEnvelope clamped =
                 new ReferencedEnvelope(
