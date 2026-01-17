@@ -375,6 +375,7 @@ public class App  extends JFrame {
                     }
                 }
             }
+            ViewportUtils.clampToWebMercator(mapContent.getViewport());
         });
 
         JMapPane mapPane = new JMapPane();
