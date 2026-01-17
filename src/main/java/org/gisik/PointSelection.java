@@ -24,11 +24,12 @@ import org.locationtech.jts.geom.MultiPolygon;
 
 import java.awt.*;
 import org.geotools.api.style.Stroke;
+
+import javax.swing.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Set;
 
 class PointSelection extends CursorTool {
     private enum GeomType {
@@ -49,6 +50,7 @@ class PointSelection extends CursorTool {
     private static final float LINE_WIDTH = 2.0f;
     private static final float POINT_SIZE = 10.0f;
     private ArrayList<FeatureId> ids = new ArrayList<>();
+    private ArrayList<SimpleFeature> features = new ArrayList<>();
 
     private GeomType geometryType;
 
@@ -70,33 +72,17 @@ class PointSelection extends CursorTool {
 
     void selectFeatures(MapMouseEvent ev, Layer layer) {
         SimpleFeatureSource featureSource =  (SimpleFeatureSource) layer.getFeatureSource();
-        System.out.println("Mouse click at: " + ev.getWorldPos());
 
-        /*
-         * Construct a 5x5 pixel rectangle centred on the mouse click position
-         */
         Point screenPos = ev.getPoint();
         Rectangle screenRect = new Rectangle(screenPos.x, screenPos.y, 5, 5);
 
-        /*
-         * Transform the screen rectangle into bounding box in the coordinate
-         * reference system of our map context. Note: we are using a naive method
-         * here but GeoTools also offers other, more accurate methods.
-         */
         AffineTransform screenToWorld = mapPane.getScreenToWorldTransform();
         Rectangle2D worldRect = screenToWorld.createTransformedShape(screenRect).getBounds2D();
         ReferencedEnvelope bbox =
                 new ReferencedEnvelope(worldRect, mapContent.getCoordinateReferenceSystem());
 
-        /*
-         * Create a Filter to select features that intersect with
-         * the bounding box
-         */
-        Filter filter = ff.intersects(ff.property(geometryAttributeName), ff.literal(bbox));
 
-        /*
-         * Use the filter to identify the selected features
-         */
+        Filter filter = ff.intersects(ff.property(geometryAttributeName), ff.literal(bbox));
         try {
             SimpleFeatureCollection selectedFeatures = featureSource.getFeatures(filter);
 
@@ -105,11 +91,14 @@ class PointSelection extends CursorTool {
                     SimpleFeature feature = iter.next();
                     if(ids.contains(feature.getIdentifier())) {
                         ids.remove(feature.getIdentifier());
+                        features.remove(feature);
                     }
                     else if(ids.size() == 2) {
                         ids.remove(0);
+                        features.remove(0);
                     } else {
                         ids.add(feature.getIdentifier());
+                        features.add(feature);
                     }
                     System.out.println("   " + feature.getIdentifier());
                 }
@@ -117,6 +106,10 @@ class PointSelection extends CursorTool {
 
             displaySelectedFeatures(ids, layer);
 
+            if(features.size() == 2) {
+                double dist = GeometryUtils.distanceBetween(features.get(0), features.get(1));
+                JOptionPane.showMessageDialog(null, "Distance: "+dist, "Info", JOptionPane.INFORMATION_MESSAGE);
+            }
         } catch (Exception ex) {
             System.err.println("Error selecting features: " + ex.getMessage());
         }
