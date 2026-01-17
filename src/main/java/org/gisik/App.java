@@ -208,7 +208,7 @@ public class App  extends JFrame {
         }
 
         try {
-            CsvLoaderDialog csvLoader = new CsvLoaderDialog(file, projectManager, layersPanel, this);
+            CsvLoaderDialog csvLoader = new CsvLoaderDialog(file, projectCrs, projectManager, mapContent, layersPanel, this);
             csvLoader.setVisible(true);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Cannot read a file", "Error", JOptionPane.ERROR_MESSAGE);

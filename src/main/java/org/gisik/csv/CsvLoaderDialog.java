@@ -34,6 +34,7 @@ public class CsvLoaderDialog extends DialogBase {
     private final String name;
     private final String absPath;
     private final CsvParser parser;
+    private final CoordinateReferenceSystem projectCrs;
     JComboBox<String> comboSeparator;
     JComboBox<String> comboLongitude;
     JComboBox<String> comboLatitude;
@@ -45,8 +46,11 @@ public class CsvLoaderDialog extends DialogBase {
     LayersPanel layersPanel;
     ProjectManager projectManager;
 
-    public CsvLoaderDialog(File csvFile, ProjectManager projectManager, LayersPanel layersPanel, JFrame parent) throws IOException {
+    public CsvLoaderDialog(File csvFile, CoordinateReferenceSystem projectCrs, ProjectManager projectManager,
+                           MapContent mapContent, LayersPanel layersPanel, JFrame parent) throws IOException {
+
         super(parent, "Load csv file");
+        this.projectCrs = projectCrs;
         this.projectManager = projectManager;
         setSize(600, 400);
         setLocationRelativeTo(null);
@@ -153,13 +157,19 @@ public class CsvLoaderDialog extends DialogBase {
 
                     FeatureLayerProject layer =
                             loader.loadProjectLayer(
-                                    projectManager.getProjectCrs()
+                                    projectCrs
                             );
 
-                    projectManager.addLayer(layer);
-                    projectManager.rebuildRenderLayers();
+                    if (projectManager != null) {
+                        projectManager.addLayer(layer);
+                        projectManager.rebuildRenderLayers();
+                    } else {
+                        mapContent.addLayer(layer);
+                    }
+
                     layersPanel.add(name, new PointIcon(ColorStyle.randomColor()), true);
                     dispose();
+
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(
                             null,
