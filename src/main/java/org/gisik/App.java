@@ -1,12 +1,23 @@
 package org.gisik;
 
+import org.geotools.api.data.SimpleFeatureSource;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.identity.FeatureId;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.style.StyleFactory;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.*;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.swing.JMapPane;
 import org.geotools.swing.control.JMapStatusBar;
 import org.geotools.swing.data.JFileDataStoreChooser;
+import org.geotools.swing.event.MapMouseEvent;
 import org.geotools.swing.tool.*;
 import org.gisik.crs.CrsDialog;
 import org.gisik.crs.CrsLookup;
@@ -16,20 +27,24 @@ import org.gisik.layersview.LayerNodeData;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
 
 
 public class App  extends JFrame {
 
+    private final JMapPane mapPane;
     private final MapViewport viewport;
     private final MapContent mapContent;
     private LayersPanel layersPanel = null;
     private JCheckBoxMenuItem showLayersPanelItem;
-    final private JSplitPane splitPane;
+    private JCheckBoxMenuItem measureDistItem;
+
+    private final JSplitPane splitPane;
     private ProjectManager projectManager = null;
 
     private int divSize = 0;
@@ -88,15 +103,19 @@ public class App  extends JFrame {
     }
 
     private void openProject() {
-                File file = JFileDataStoreChooser.showOpenFile("", this);
-                if (file == null) {
-                    return;
-                }
-                if(!file.canRead()){
-                    JOptionPane.showMessageDialog(null, "Given file path has no read persmission", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-                projectManager = new ProjectManager(mapContent, layersPanel, file.getAbsolutePath());
-            projectManager.openProject();
+        File file = JFileDataStoreChooser.showOpenFile("", this);
+        if (file == null) {
+            return;
+        }
+        if(!file.canRead()){
+            JOptionPane.showMessageDialog(null, "Given file path has no read persmission", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        layersPanel.reset();
+        for(Layer layer : mapContent.layers())
+            mapContent.removeLayer(layer);
+
+        projectManager = new ProjectManager(mapContent, layersPanel, file.getAbsolutePath());
+        projectManager.openProject();
     }
 
     private JMenu createEditMenu() {
@@ -120,10 +139,15 @@ public class App  extends JFrame {
                 displayLayerPanel();
             }
         });
-        JMenuItem test = new JMenuItem(new AbstractAction("test") {
+
+        measureDistItem = new JCheckBoxMenuItem(new AbstractAction("Measure Distance") {
             public void actionPerformed(ActionEvent e) {
-                viewport.setCoordinateReferenceSystem(CrsLookup.find("EPSG2178"));
-                System.out.println("test");
+                if(measureDistItem.getState()) {
+                    mapPane.setCursorTool(new PointSelection(mapPane, layersPanel));
+                } else {
+                    setupPanAndZoom(mapPane);
+                    layersPanel.resetLayersColors();
+                }
             }
         });
 
@@ -136,7 +160,7 @@ public class App  extends JFrame {
         showLayersPanelItem.setSelected(true);
         menu.add(showLayersPanelItem);
         menu.add(setCrsItem);
-        menu.add(test);
+        menu.add(measureDistItem);
         return menu;
     }
 
@@ -335,7 +359,7 @@ public class App  extends JFrame {
             }
         });
 
-        JMapPane mapPane = new JMapPane();
+        mapPane = new JMapPane();
         setupPanAndZoom(mapPane);
         mapPane.setMapContent(mapContent);
         JPanel panel = new JPanel();

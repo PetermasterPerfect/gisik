@@ -3,9 +3,10 @@ package org.gisik.layersview;
 import javax.swing.*;
 import java.awt.*;
 
-public class SquareIcon implements Icon {
-    private final Color color;
-    public SquareIcon(Color color) { this.color = color; }
+public class SquareIcon extends FigureIcon {
+    public SquareIcon(Color color) {
+        super(color);
+    }
 
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {

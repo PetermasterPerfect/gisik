@@ -3,9 +3,10 @@ package org.gisik.layersview;
 import javax.swing.*;
 import java.awt.*;
 
-public class PointIcon implements Icon {
-    private final Color color;
-    public PointIcon(Color color) { this.color = color; }
+public class PointIcon extends FigureIcon {
+    public PointIcon(Color color) {
+        super(color);
+    }
 
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
@@ -13,6 +14,10 @@ public class PointIcon implements Icon {
         g.fillOval(x + 6, y + 6, 8, 8);
         g.setColor(Color.DARK_GRAY);
         g.drawOval(x + 6, y + 6, 8, 8);
+    }
+
+    public Color getColor() {
+        return color;
     }
 
     @Override public int getIconWidth() { return 20; }

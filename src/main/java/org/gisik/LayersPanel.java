@@ -1,13 +1,16 @@
 package org.gisik;
+import org.geotools.api.data.SimpleFeatureSource;
 import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.api.filter.expression.Expression;
 import org.geotools.api.style.*;
 import org.geotools.api.style.Stroke;
+import org.geotools.map.FeatureLayer;
 import org.geotools.map.Layer;
 import org.geotools.map.MapContent;
 import org.geotools.map.StyleLayer;
 import org.geotools.styling.LineSymbolizerImpl;
 import org.geotools.swing.styling.JSimpleStyleDialog;
+import org.gisik.layersextra.TileLayerEx;
 import org.gisik.layersview.*;
 
 import javax.swing.*;
@@ -140,14 +143,14 @@ public class LayersPanel extends JPanel {
         }
     }
 
-    public void add(final String text, Icon icon,
+    public void add(final String text, FigureIcon icon,
             final boolean checked) {
         final LayerNodeData data = new LayerNodeData(text, icon, checked);
         model.insertRow(model.getRowCount(), new Object[]{checked, data});
 
     }
 
-    public void replace(final String text, Icon icon,
+    public void replace(final String text, FigureIcon icon,
                     final boolean checked, int index) {
         model.removeRow(index);
         final LayerNodeData data = new LayerNodeData(text, icon, checked);
@@ -202,6 +205,33 @@ public class LayersPanel extends JPanel {
                 }
             }
         }
+    }
+
+    public Color getLayersColor(int idx) {
+        Object val = model.getValueAt(idx, 1);
+        if (val instanceof LayerNodeData data) {
+            return ((FigureIcon)data.getIcon()).getColor();
+        }
+        return null;
+    }
+
+    public void resetLayersColors() {
+        int i=0;
+        for(Layer layer : mapContent.layers()) {
+            if(layer instanceof TileLayerEx) {
+                i++;
+                continue;
+            }
+            Color color = getLayersColor(i);
+            Style style = ColorStyle.createStyle2(((SimpleFeatureSource) layer.getFeatureSource()).getSchema(), color);
+            ((FeatureLayer) layer).setStyle(style);
+            i++;
+        }
+        repaint();
+    }
+
+    public void reset() {
+        model.setRowCount(0);
     }
 
     public void setOSMCBLocked(boolean locked) {

@@ -3,17 +3,19 @@ package org.gisik.layersview;
 import javax.swing.*;
 import java.awt.*;
 
-public class LineIcon implements Icon {
-    private final Color color;
-
+public class LineIcon extends FigureIcon {
     public LineIcon(Color color) {
-        this.color = color;
+        super(color);
     }
 
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
         g.setColor(color);
         g.drawLine(x + 2, y + getIconHeight() / 2, x + getIconWidth() - 2, y + getIconHeight() / 2);
+    }
+
+    public Color getColor() {
+        return color;
     }
 
     @Override

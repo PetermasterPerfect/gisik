@@ -5,9 +5,9 @@ import javax.swing.*;
 public class LayerNodeData {
 
     private String label;
-    private Icon icon;
+    private FigureIcon icon;
 
-    public LayerNodeData(String label, Icon icon, boolean checked) {
+    public LayerNodeData(String label, FigureIcon icon, boolean checked) {
         this.label = label;
         this.icon = icon;
     }
@@ -25,11 +25,11 @@ public class LayerNodeData {
         this.label = label;
     }
 
-    public Icon getIcon() {
+    public FigureIcon getIcon() {
         return icon;
     }
 
-    public void setIcon(Icon icon) {
+    public void setIcon(FigureIcon icon) {
         this.icon = icon;
     }
 

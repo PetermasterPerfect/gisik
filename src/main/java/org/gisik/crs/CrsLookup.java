@@ -13,9 +13,9 @@ import java.nio.file.Paths;
 import java.util.Objects;
 
 public class CrsLookup {
-    static public String[] crs = {"WGS84(DD)", "EPSG2178", "EPSG2180"};
+    static public String[] crs = {"WGS84(DD)", "GCS_WGS_1984", "EPSG2178", "EPSG2180"};
     static public CoordinateReferenceSystem find(String crsName) {
-        if(Objects.equals(crsName, "WGS84(DD)")) {
+        if(Objects.equals(crsName, "WGS84(DD)") || Objects.equals(crsName, "GCS_WGS_1984")) {
             return DefaultGeographicCRS.WGS84;
         } else {
             return nameToCrs(crsName);
