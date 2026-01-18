@@ -9,6 +9,8 @@ import org.geotools.map.Layer;
 import org.geotools.map.MapContent;
 import org.geotools.map.StyleLayer;
 import org.geotools.styling.LineSymbolizerImpl;
+import org.geotools.swing.JMapPane;
+import org.geotools.swing.MapPane;
 import org.geotools.swing.styling.JSimpleStyleDialog;
 import org.gisik.layersextra.TileLayerEx;
 import org.gisik.layersview.*;
@@ -29,8 +31,11 @@ public class LayersPanel extends JPanel {
     private final DefaultTableModel model = new DefaultTableModel();
     private final MapContent mapContent;
     private boolean osmCBLocked = false;
-    public LayersPanel(MapContent mapContent) {
+    private final JMapPane mapPane;
+
+    public LayersPanel(MapContent mapContent, JMapPane mapPane) {
         this.mapContent = mapContent;
+        this.mapPane = mapPane;
         model.addColumn("");
         model.addColumn("Layers panel");
         table = new JTable(model) {
@@ -57,15 +62,21 @@ public class LayersPanel extends JPanel {
         };
         table.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mousePressed(MouseEvent e) {
                 int col = table.columnAtPoint(e.getPoint());
-                if(col == 0) {
-                    int row = table.rowAtPoint(e.getPoint());
-                    Boolean checkBox = (Boolean)model.getValueAt(row, 0);
+                int row = table.rowAtPoint(e.getPoint());
+
+                if (row >= 0) {
+                    table.setRowSelectionInterval(row, row);
+                }
+
+                if (SwingUtilities.isLeftMouseButton(e) && col == 0 && row >= 0) {
+                    Boolean checkBox = (Boolean) model.getValueAt(row, 0);
                     mapContent.layers().get(row).setVisible(checkBox);
                 }
             }
         });
+
         table.setTableHeader(null);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getColumnModel().getColumn(0).setMaxWidth(50);
@@ -76,6 +87,21 @@ public class LayersPanel extends JPanel {
         add(setupButtons(),  BorderLayout.PAGE_END);
         add(new JScrollPane(table), BorderLayout.CENTER);
         setPreferredSize(new Dimension(200, -1));
+
+        JPopupMenu popup = new JPopupMenu();
+        JMenuItem zoomItem = new JMenuItem("Zoom to Layer");
+
+        zoomItem.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row < 0) return;
+
+            Layer layer = mapContent.layers().get(row);
+            LayerZoomUtils.zoomToLayer(layer, mapContent.getViewport());
+            mapPane.setDisplayArea(mapContent.getViewport().getBounds());
+
+        });
+        popup.add(zoomItem);
+        table.setComponentPopupMenu(popup);
     }
 
     private JPanel setupButtons()

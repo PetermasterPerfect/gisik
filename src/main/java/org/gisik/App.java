@@ -366,7 +366,7 @@ public class App  extends JFrame {
         panel.add(JMapStatusBar.createDefaultStatusBar(mapPane), "grow");
         this.getContentPane().add(panel, BorderLayout.SOUTH);
 
-        layersPanel = new LayersPanel(mapContent);
+        layersPanel = new LayersPanel(mapContent, mapPane);
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new JScrollPane(layersPanel), mapPane);
         splitPane.setOneTouchExpandable(true);
         this.add(splitPane, BorderLayout.CENTER);
