@@ -163,8 +163,10 @@ public class LayersPanel extends JPanel {
             int idx = table.getSelectedRows()[0];
                 if(mapContent.layers().get(idx) instanceof StyleLayer layer) {
                     Style style = JSimpleStyleDialog.showDialog(null, (SimpleFeatureType)layer.getFeatureSource().getSchema());
-                    changeColorInPanel(layer, style, idx);
-                    layer.setStyle(style);
+                    if(style != null) {
+                        changeColorInPanel(layer, style, idx);
+                        layer.setStyle(style);
+                    }
                 }
         }
     }

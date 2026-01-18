@@ -43,7 +43,7 @@ public class GeometryUtils {
         g1 = JTS.transform(g1, toMetric);
         g2 = JTS.transform(g2, toMetric);
 
-        System.out.println("Dist: "+g1.distance(g2));
+        System.out.println("Distance: "+g1.distance(g2) +" meters");
         return g1.distance(g2);
     }
 }
