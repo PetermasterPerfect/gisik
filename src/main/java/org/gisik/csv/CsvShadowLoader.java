@@ -26,6 +26,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Helper class for loading CSV data into a MapContent and LayersPanel without displaying a dialog.
+ * <p>
+ * Parses the CSV file, creates point features for the specified longitude and latitude columns,
+ * styles them with a random color, and adds them as a FeatureLayerFromCsv to the map and UI.
+ */
 public class CsvShadowLoader {
     private final CsvParser parser;
     private final String sep;
@@ -35,6 +41,18 @@ public class CsvShadowLoader {
     private final String latColumn;
     private final String absPath;
     private final boolean firstRow;
+
+    /**
+     * Constructs a CsvShadowLoader for the specified CSV file and settings.
+     *
+     * @param csvFile   the CSV file to load
+     * @param sep       the column separator (comma, semicolon, tab, etc.)
+     * @param crsName   the name of the coordinate reference system (CRS) to use
+     * @param lonColumn the column name containing longitude values
+     * @param latColumn the column name containing latitude values
+     * @param firstRow  whether the first row contains data (true) or headers (false)
+     * @throws IOException if the CSV file cannot be read
+     */
     public CsvShadowLoader(File csvFile, String sep, String crsName, String lonColumn, String latColumn, String firstRow) throws IOException {
         parser = new CsvParser(csvFile, CsvParser.comboTextToChar(sep));
         this.crsName = crsName;
@@ -46,6 +64,17 @@ public class CsvShadowLoader {
         this.sep = sep;
     }
 
+    /**
+     * Loads the CSV data into the specified LayersPanel and MapContent.
+     * <p>
+     * Creates point features for each row, builds a SimpleFeatureCollection,
+     * applies a random color style, creates a FeatureLayerFromCsv, and adds it
+     * to both the map content and the UI layer panel.
+     *
+     * @param layersPanel the UI panel to add the layer to
+     * @param mapContent  the MapContent to display the features
+     * @throws IOException if there is an error reading the CSV data
+     */
     public void load(LayersPanel layersPanel, MapContent mapContent) throws IOException {
         CoordinateReferenceSystem crs = CrsLookup.find(this.crsName);
         if(crs == null) {
@@ -58,7 +87,6 @@ public class CsvShadowLoader {
         builder.add("the_geom", Point.class);
         List<Double> longs = parser.parseColumnByName(this.lonColumn, this.firstRow);
         List<Double> lats = parser.parseColumnByName(this.latColumn, this.firstRow);
-
 
         GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
         SimpleFeatureType featureType = builder.buildFeatureType();

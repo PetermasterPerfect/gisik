@@ -28,6 +28,19 @@ import java.util.List;
 
 import static org.gisik.csv.CsvParser.comboTextToChar;
 
+/**
+ * Dialog for loading a CSV file as a vector layer in the GIS application.
+ * <p>
+ * This dialog allows the user to:
+ * <ul>
+ *     <li>Select a separator for the CSV file.</li>
+ *     <li>Specify which columns correspond to longitude and latitude.</li>
+ *     <li>Choose a Coordinate Reference System (CRS) for the data.</li>
+ *     <li>Specify whether the first row contains actual data or headers.</li>
+ *     <li>Preview the CSV content before importing.</li>
+ * </ul>
+ * Once the user clicks "Add", a point layer is created and added to the map and layers panel.
+ */
 public class CsvLoaderDialog extends DialogBase {
 
     private final String name;
@@ -43,6 +56,15 @@ public class CsvLoaderDialog extends DialogBase {
     MapContent mapContent;
     LayersPanel layersPanel;
 
+    /**
+     * Constructs a CsvLoaderDialog for the specified CSV file.
+     *
+     * @param csvFile the CSV file to load
+     * @param mapContent the MapContent object where the new layer will be added
+     * @param layersPanel the LayersPanel where the new layer will be registered
+     * @param parent the parent JFrame for this dialog
+     * @throws IOException if the CSV file cannot be read
+     */
     public CsvLoaderDialog(File csvFile, MapContent mapContent, LayersPanel layersPanel, JFrame parent) throws IOException {
         super(parent, "Load csv file");
         setSize(600, 400);
@@ -95,6 +117,15 @@ public class CsvLoaderDialog extends DialogBase {
         setHandler();
     }
 
+    /**
+     * Sets up event handlers for UI components.
+     * <p>
+     * Handles:
+     * <ul>
+     *     <li>Changing the CSV separator updates the column dropdowns.</li>
+     *     <li>Clicking the "Add" button parses the CSV and creates a point layer on the map.</li>
+     * </ul>
+     */
     private void setHandler() {
         ActionListener actionListener = e -> {
             Object src = e.getSource();

@@ -21,6 +21,17 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+/**
+ * LayersPanel is a GUI component for managing map layers in a {@link MapContent}.
+ * <p>
+ * It provides a table view showing all layers with:
+ * <ul>
+ *     <li>Checkboxes for visibility control</li>
+ *     <li>Layer icons based on geometry type</li>
+ *     <li>Buttons to move, delete, and edit layers</li>
+ * </ul>
+ * It also supports right-click context menu to zoom to a layer.
+ */
 public class LayersPanel extends JPanel {
 
     private final JButton deleteBtn = new JButton();
@@ -33,6 +44,13 @@ public class LayersPanel extends JPanel {
     private boolean osmCBLocked = false;
     private final JMapPane mapPane;
 
+    /**
+     * Constructs a LayersPanel for a specific map content and map pane.
+     * Initializes the table, buttons, and layer management logic.
+     *
+     * @param mapContent the MapContent that this panel will manage
+     * @param mapPane    the JMapPane displaying the map
+     */
     public LayersPanel(MapContent mapContent, JMapPane mapPane) {
         this.mapContent = mapContent;
         this.mapPane = mapPane;
@@ -104,6 +122,11 @@ public class LayersPanel extends JPanel {
         table.setComponentPopupMenu(popup);
     }
 
+    /**
+     * Initializes the control buttons (delete, move up/down, edit) at the bottom of the panel.
+     *
+     * @return a JPanel containing the buttons
+     */
     private JPanel setupButtons()
     {
         JPanel btnsPanel = new JPanel(new FlowLayout());
@@ -130,6 +153,10 @@ public class LayersPanel extends JPanel {
         return btnsPanel;
     }
 
+
+    /**
+     * Deletes the currently selected layer from both the table and the map.
+     */
     private void deleteLayer() {
         if(!table.isEditing()) {
             int idx = table.getSelectedRows()[0];
@@ -138,6 +165,9 @@ public class LayersPanel extends JPanel {
         }
     }
 
+    /**
+     * Moves the currently selected layer up in the layer order.
+     */
     private void moveupLayer() {
         if(!table.isEditing()) {
             int idx = table.getSelectedRows()[0];
@@ -148,6 +178,9 @@ public class LayersPanel extends JPanel {
         }
     }
 
+    /**
+     * Moves the currently selected layer down in the layer order.
+     */
     private void movedownLayer() {
         if(!table.isEditing()) {
             int idx = table.getSelectedRows()[0];
@@ -158,6 +191,10 @@ public class LayersPanel extends JPanel {
         }
     }
 
+    /**
+     * Opens a style editor dialog for the currently selected layer
+     * and updates the layer icon color accordingly.
+     */
     private void editLayer() {
         if(!table.isEditing()) {
             int idx = table.getSelectedRows()[0];
@@ -171,6 +208,13 @@ public class LayersPanel extends JPanel {
         }
     }
 
+    /**
+     * Adds a new layer entry to the layers panel.
+     *
+     * @param text    the label for the layer
+     * @param icon    the icon representing the layer type
+     * @param checked initial visibility state of the layer
+     */
     public void add(final String text, FigureIcon icon,
             final boolean checked) {
         final LayerNodeData data = new LayerNodeData(text, icon, checked);
@@ -178,6 +222,14 @@ public class LayersPanel extends JPanel {
 
     }
 
+    /**
+     * Replaces an existing layer entry at the specified index.
+     *
+     * @param text    new label for the layer
+     * @param icon    new icon representing the layer type
+     * @param checked new visibility state
+     * @param index   the index of the layer to replace
+     */
     public void replace(final String text, FigureIcon icon,
                     final boolean checked, int index) {
         model.removeRow(index);
@@ -186,12 +238,24 @@ public class LayersPanel extends JPanel {
 
     }
 
+    /**
+     * Removes the layer entry at the specified index.
+     *
+     * @param index index of the layer to remove
+     */
     public void remove(int index){
         if(index >= 0 && index < model.getRowCount()) {
             model.removeRow(index);
         }
     }
 
+    /**
+     * Updates the icon in the layers panel based on the color from the given style.
+     *
+     * @param layer the layer whose style is applied
+     * @param style the new style
+     * @param idx   the index of the layer in the table
+     */
     private void changeColorInPanel(Layer layer, Style style, int idx) {
         for (FeatureTypeStyle fts : style.featureTypeStyles()) {
             for (Rule rule : fts.rules()) {
@@ -235,6 +299,12 @@ public class LayersPanel extends JPanel {
         }
     }
 
+    /**
+     * Gets the color assigned to a layer at a specific index.
+     *
+     * @param idx index of the layer
+     * @return the Color of the layer icon, or null if not available
+     */
     public Color getLayersColor(int idx) {
         Object val = model.getValueAt(idx, 1);
         if (val instanceof LayerNodeData data) {
@@ -243,6 +313,10 @@ public class LayersPanel extends JPanel {
         return null;
     }
 
+    /**
+     * Updates all layers’ styles to reflect their stored colors in the layers panel.
+     * Useful after programmatically changing layer colors.
+     */
     public void resetLayersColors() {
         int i=0;
         for(Layer layer : mapContent.layers()) {
@@ -258,18 +332,36 @@ public class LayersPanel extends JPanel {
         repaint();
     }
 
+    /**
+     * Resets the layers panel by clearing all layer entries.
+     */
     public void reset() {
         model.setRowCount(0);
     }
 
+    /**
+     * Locks or unlocks the OSM checkbox to prevent accidental visibility changes.
+     *
+     * @param locked true to lock, false to unlock
+     */
     public void setOSMCBLocked(boolean locked) {
         this.osmCBLocked = locked;
     }
 
+    /**
+     * Returns the table model used for the layer list.
+     *
+     * @return the DefaultTableModel
+     */
     public DefaultTableModel getModel(){
         return model;
     }
 
+    /**
+     * Returns the JTable used for displaying layers.
+     *
+     * @return the JTable
+     */
     public JTable getTable(){
         return table;
     }

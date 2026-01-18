@@ -1,55 +1,68 @@
 package org.gisik;
 
-import org.geotools.api.data.SimpleFeatureSource;
-import org.geotools.api.feature.simple.SimpleFeature;
-import org.geotools.api.filter.Filter;
-import org.geotools.api.filter.FilterFactory;
-import org.geotools.api.filter.identity.FeatureId;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
-import org.geotools.api.style.StyleFactory;
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.*;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.swing.JMapPane;
 import org.geotools.swing.control.JMapStatusBar;
 import org.geotools.swing.data.JFileDataStoreChooser;
-import org.geotools.swing.event.MapMouseEvent;
 import org.geotools.swing.tool.*;
 import org.gisik.crs.CrsDialog;
-import org.gisik.crs.CrsLookup;
 import org.gisik.csv.CsvLoaderDialog;
 import org.gisik.layersview.LayerNodeData;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
+/**
+ * Main application class for the GISik project.
+ * This class initializes the main GUI window, manages menus,
+ * map content, layers, and interactions with the user.
+ * It supports adding vector layers (SHP, CSV), base maps (OSM),
+ * CRS transformations, and project save/load functionality.
+ */
 
 public class App  extends JFrame {
 
+    /** The main map pane for rendering layers */
     private final JMapPane mapPane;
+
+    /** The viewport that defines the CRS and map bounds */
     private final MapViewport viewport;
+
+    /** The MapContent holds all layers for the current session */
     private final MapContent mapContent;
+
+    /** Panel showing all layers and their visibility */
     private LayersPanel layersPanel = null;
+
+    /** Checkbox menu item for showing/hiding the layers panel */
     private JCheckBoxMenuItem showLayersPanelItem;
+
+    /** Checkbox menu item for enabling/disabling distance measurement tool */
     private JCheckBoxMenuItem measureDistItem;
 
+    /** Split pane separating the layers panel and the map pane */
     private final JSplitPane splitPane;
+
+    /** The manager handling project files, layers, and CRS info */
     private ProjectManager projectManager = null;
 
+    /** Variables to preserve split pane divider location and size */
     private int divSize = 0;
     private int divLoc = 0;
 
+    /**
+     * Creates the "File" menu with options to open, save, and save as a project.
+     *
+     * @return JMenu the constructed File menu
+     */
     private JMenu createFileMenu() {
         JMenu menu;
         JMenuItem openItem, saveItem, saveAsItem;
@@ -82,6 +95,9 @@ public class App  extends JFrame {
         return menu;
     }
 
+    /**
+     * Saves the current project. If no project exists, prompts user to create one.
+     */
     private void saveProject() {
         if(projectManager == null) {
             JFileChooser fileChooser = new JFileChooser();
@@ -93,6 +109,9 @@ public class App  extends JFrame {
         projectManager.saveProject();
     }
 
+    /**
+     * Saves the project to a new file location chosen by the user.
+     */
     private void saveAsProject() {
         JFileChooser fileChooser = new JFileChooser();
         int option = fileChooser.showSaveDialog(this);
@@ -102,6 +121,10 @@ public class App  extends JFrame {
         projectManager.saveProject();
     }
 
+
+    /**
+     * Opens an existing project file, clearing current layers and loading saved layers.
+     */
     private void openProject() {
         File file = JFileDataStoreChooser.showOpenFile("", this);
         if (file == null) {
@@ -118,6 +141,11 @@ public class App  extends JFrame {
         projectManager.openProject();
     }
 
+    /**
+     * Creates the "Edit" menu, currently with option to delete layers.
+     *
+     * @return JMenu the constructed Edit menu
+     */
     private JMenu createEditMenu() {
         JMenu menu;
         menu = new JMenu("Edit");
@@ -131,6 +159,12 @@ public class App  extends JFrame {
         return menu;
     }
 
+    /**
+     * Creates the "View" menu, allowing the user to show/hide layers panel,
+     * set CRS, and enable the measure distance tool.
+     *
+     * @return JMenu the constructed View menu
+     */
     private JMenu createViewMenu() {
         JMenu menu;
         menu = new JMenu("View");
@@ -164,6 +198,11 @@ public class App  extends JFrame {
         return menu;
     }
 
+    /**
+     * Creates the "Layer" menu with options to add vector (SHP) or CSV layers.
+     *
+     * @return JMenu the constructed Layer menu
+     */
     private JMenu createLayerMenu() {
         JMenu menu;
         JMenuItem addVectorItem = new JMenuItem(new AbstractAction("Add Vector") {
@@ -182,6 +221,11 @@ public class App  extends JFrame {
         return menu;
     }
 
+    /**
+     * Creates the "Base Maps" menu with option to add OSM map.
+     *
+     * @return JMenu the constructed Base Maps menu
+     */
     private JMenu createBaseMapMenu() {
         JMenu menu;
         JMenuItem addOSMMap = new JMenuItem(new AbstractAction("Add OSM Map") {
@@ -195,6 +239,9 @@ public class App  extends JFrame {
         return menu;
     }
 
+    /**
+     * Opens a file chooser to select a SHP file and adds it to the map.
+     */
     private void openShapeWithDialog() {
             File file = JFileDataStoreChooser.showOpenFile("shp", null);
             if (file == null) {
@@ -203,6 +250,9 @@ public class App  extends JFrame {
             LayerManager.addShape(file, mapContent, layersPanel);
     }
 
+    /**
+     * Opens a file chooser to select a CSV file and opens a loader dialog for it.
+     */
     private void openCsv() {
         File file = JFileDataStoreChooser.showOpenFile("csv", null);
         if (file == null) {
@@ -220,11 +270,17 @@ public class App  extends JFrame {
         }
     }
 
+    /**
+     * Opens a dialog for selecting a new CRS for the project.
+     */
     private void openCrsDialog() {
         CrsDialog crsDialog = new CrsDialog( viewport, this);
         crsDialog.setVisible(true);
     }
 
+    /**
+     * Creates and sets the main menu bar of the application.
+     */
     private void createMenu() {
         JMenuBar menuBar;
 
@@ -239,6 +295,11 @@ public class App  extends JFrame {
         this.setJMenuBar(menuBar);
     }
 
+    /**
+     * Configures pan and zoom tools for the given map pane.
+     *
+     * @param mapPane the map pane to configure
+     */
     private void setupPanAndZoom(JMapPane mapPane) {
         PanTool panTool = new PanTool();
         panTool.setMapPane(mapPane);
@@ -247,6 +308,9 @@ public class App  extends JFrame {
 
     }
 
+    /**
+     * Shows or hides the layers panel depending on the menu item state.
+     */
     private void displayLayerPanel() {
         if(showLayersPanelItem.getState()) {
             Component left = splitPane.getLeftComponent();
@@ -263,14 +327,9 @@ public class App  extends JFrame {
         }
     }
 
-//    String getProjectEntry() {
-//        return String.format("CRS %s", viewport.getCoordinateReferenceSystem().getName().toString());
-//    }
-
-    private void setCrsPanel() {
-
-    }
-
+    /**
+     * Opens a dialog allowing the user to select layers to delete.
+     */
     private void openLayerDeletion() {
         List<Layer> mapLayers = mapContent.layers();
         String[] names = mapLayers.stream().map(Layer::getTitle).toArray(String[]::new);
@@ -295,6 +354,12 @@ public class App  extends JFrame {
         }
     }
 
+    /**
+     * Deletes selected layers from the map and layers panel.
+     *
+     * @param selectedIndices indices of layers to remove
+     * @param allLayers       all current layers in the map
+     */
     private void deleteSelectedLayers(int[] selectedIndices, List<Layer> allLayers) {
         Arrays.sort(selectedIndices);
 
@@ -318,8 +383,12 @@ public class App  extends JFrame {
         layersPanel.repaint();
     }
 
-
-
+    /**
+     * Constructor for the main application window.
+     * <p>
+     * Initializes menus, map content, viewport, layers panel,
+     * and sets up the GUI layout.
+     */
     public App() {
         createMenu();
         setTitle("gisik");
@@ -373,6 +442,11 @@ public class App  extends JFrame {
 
     }
 
+    /**
+     * Main entry point of the application.
+     *
+     * @param args command line arguments (unused)
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new App().setVisible(true));
     }

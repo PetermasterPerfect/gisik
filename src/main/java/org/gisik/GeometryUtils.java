@@ -7,8 +7,27 @@ import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Geometry;
 
+/**
+ * Utility class for operations on geometries, such as distance calculations between features.
+ */
 public class GeometryUtils {
 
+    /**
+     * Computes the distance between the geometries of two {@link SimpleFeature} objects.
+     * <p>
+     * The method will:
+     * <ul>
+     *     <li>Check that both features have valid geometries.</li>
+     *     <li>Reproject geometries to a common CRS if their CRS differs.</li>
+     *     <li>Transform the geometries to a metric CRS (EPSG:2180) for distance calculation.</li>
+     * </ul>
+     *
+     * @param f1 the first feature
+     * @param f2 the second feature
+     * @return the distance between the two feature geometries in the metric CRS units (meters)
+     * @throws Exception if geometries cannot be transformed or features have no geometries
+     * @throws IllegalArgumentException if one of the features has no geometry
+     */
     public static double distanceBetween(
             SimpleFeature f1,
             SimpleFeature f2

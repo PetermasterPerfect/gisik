@@ -24,8 +24,23 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Utility class for managing layers in a {@link MapContent}, including adding
+ * vector layers (shapefiles) and base map layers (OSM).
+ */
 public class LayerManager {
 
+    /**
+     * Adds a shapefile (.shp) as a layer to the given {@link MapContent} and
+     * updates the {@link LayersPanel} accordingly.
+     * <p>
+     * The method automatically assigns a random color to the layer and chooses
+     * an appropriate icon for the geometry type (Point, Line, Polygon).
+     *
+     * @param file        the shapefile to load
+     * @param mapContent  the MapContent to which the layer will be added
+     * @param layersPanel the UI panel displaying layers
+     */
     static public void addShape(File file, MapContent mapContent, LayersPanel layersPanel) {
         try {
             FileDataStore store = FileDataStoreFinder.getDataStore(file);
@@ -62,6 +77,16 @@ public class LayerManager {
         }
     }
 
+    /**
+     * Adds an OpenStreetMap (OSM) base layer to the given {@link MapContent} and
+     * updates the {@link LayersPanel}.
+     * <p>
+     * The OSM layer is only added if it does not already exist in the MapContent
+     * and if the map is in the WGS84 coordinate reference system or has no CRS yet.
+     *
+     * @param mapContent  the MapContent to which the OSM layer will be added
+     * @param layersPanel the UI panel displaying layers
+     */
     static public void addOSM(MapContent mapContent, LayersPanel layersPanel) {
         List<String> createdLayers =  mapContent.layers().stream().map(Layer::getTitle).toList() ;
 
